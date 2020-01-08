@@ -15,7 +15,6 @@ https://github.com/Kevin-Robertson/InveighZero - done <br>
 https://github.com/anthemtotheego/SharpExec - done <br>
 https://github.com/fireeye/SharPersist - done <br>
 https://github.com/0xbadjuju/WheresMyImplant <br>
-https://github.com/Raikia/SharpStat <br>
 https://github.com/cobbr/SharpSploit <br>
 https://github.com/rvrsh3ll/SharpCOM <br>
 https://github.com/rvrsh3ll/SharpPrinter <br>
@@ -25,4 +24,5 @@ https://github.com/fireeye/DueDLLigence <br>
 https://github.com/fireeye/ADFSDump <br>
 https://github.com/leoloobeek/csharp <br>
 https://github.com/matterpreter/OffensiveCSharp <br>
+https://github.com/tevora-threat/SharpView <br>
 https://github.com/GhostPack (all the things)
