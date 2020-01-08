@@ -14,8 +14,8 @@ https://github.com/GhostPack/SharpUp - done <br>
 https://github.com/Kevin-Robertson/InveighZero - done <br>
 https://github.com/anthemtotheego/SharpExec - done <br>
 https://github.com/fireeye/SharPersist - done <br>
-https://github.com/0xbadjuju/WheresMyImplant <br>
-https://github.com/cobbr/SharpSploit <br>
+https://github.com/0xbadjuju/WheresMyImplant - compiling issues<br>
+https://github.com/cobbr/SharpSploit - compiling issues <br>
 https://github.com/rvrsh3ll/SharpCOM <br>
 https://github.com/rvrsh3ll/SharpPrinter <br>
 https://github.com/rvrsh3ll/SharpFruit - done <br>
