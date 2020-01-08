@@ -16,7 +16,7 @@ https://github.com/anthemtotheego/SharpExec - done <br>
 https://github.com/fireeye/SharPersist - done <br>
 https://github.com/0xbadjuju/WheresMyImplant - compiling issues<br>
 https://github.com/cobbr/SharpSploit - compiling issues <br>
-https://github.com/rvrsh3ll/SharpCOM <br>
+https://github.com/rvrsh3ll/SharpCOM - done <br>
 https://github.com/rvrsh3ll/SharpPrinter <br>
 https://github.com/rvrsh3ll/SharpFruit - done <br>
 https://github.com/rvrsh3ll/SharpExcel4-DCOM - done <br>
