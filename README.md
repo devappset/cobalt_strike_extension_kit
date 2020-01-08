@@ -12,7 +12,7 @@ https://github.com/djhohnstein/SharpWeb - done <br>
 https://github.com/BloodHoundAD/SharpHound - done <br>
 https://github.com/GhostPack/SharpUp - done <br>
 https://github.com/Kevin-Robertson/InveighZero - done <br>
-https://github.com/anthemtotheego/SharpExec <br>
+https://github.com/anthemtotheego/SharpExec - done <br>
 https://github.com/fireeye/SharPersist <br>
 https://github.com/0xbadjuju/WheresMyImplant <br>
 https://github.com/Raikia/SharpStat <br>
