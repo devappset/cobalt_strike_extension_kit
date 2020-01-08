@@ -5,8 +5,8 @@ These templates assume your C# files are in /opt/exe/ please change according to
 
 TODO:
 Add the following aliases <br>
-https://github.com/GhostPack/Rubeus <br>
-https://github.com/GhostPack/Seatbelt <br>
+https://github.com/GhostPack/Rubeus - done <br>
+https://github.com/GhostPack/Seatbelt - done <br>
 https://github.com/eladshamir/Internal-Monologue <br>
 https://github.com/djhohnstein/SharpWeb <br>
 https://github.com/BloodHoundAD/SharpHound <br>
