@@ -4,25 +4,25 @@ Tired of typing execute-assembly everytime you use Cobalt Strike?  Clone this.  
 These templates assume your C# files are in /opt/exe/ please change according to your environment.
 
 TODO:
-Add the following aliases
-https://github.com/GhostPack/Rubeus
-https://github.com/GhostPack/Seatbelt
-https://github.com/eladshamir/Internal-Monologue
-https://github.com/djhohnstein/SharpWeb
-https://github.com/BloodHoundAD/SharpHound
-https://github.com/GhostPack/SharpUp
-https://github.com/Kevin-Robertson/Inveigh
-https://github.com/anthemtotheego/SharpExec
-https://github.com/fireeye/SharPersist
-https://github.com/0xbadjuju/WheresMyImplant
-https://github.com/Raikia/SharpStat
-https://github.com/cobbr/SharpSploit
-https://github.com/rvrsh3ll/SharpCOM
-https://github.com/rvrsh3ll/SharpPrinter
-https://github.com/rvrsh3ll/SharpFruit
-https://github.com/rvrsh3ll/SharpExcel4-DCOM
-https://github.com/fireeye/DueDLLigence
-https://github.com/fireeye/ADFSDump
-https://github.com/leoloobeek/csharp
-https://github.com/matterpreter/OffensiveCSharp
+Add the following aliases <br>
+https://github.com/GhostPack/Rubeus <br>
+https://github.com/GhostPack/Seatbelt <br>
+https://github.com/eladshamir/Internal-Monologue <br>
+https://github.com/djhohnstein/SharpWeb <br>
+https://github.com/BloodHoundAD/SharpHound <br>
+https://github.com/GhostPack/SharpUp <br>
+https://github.com/Kevin-Robertson/Inveigh <br>
+https://github.com/anthemtotheego/SharpExec <br>
+https://github.com/fireeye/SharPersist <br>
+https://github.com/0xbadjuju/WheresMyImplant <br>
+https://github.com/Raikia/SharpStat <br>
+https://github.com/cobbr/SharpSploit <br>
+https://github.com/rvrsh3ll/SharpCOM <br>
+https://github.com/rvrsh3ll/SharpPrinter <br>
+https://github.com/rvrsh3ll/SharpFruit <br>
+https://github.com/rvrsh3ll/SharpExcel4-DCOM <br>
+https://github.com/fireeye/DueDLLigence <br>
+https://github.com/fireeye/ADFSDump <br>
+https://github.com/leoloobeek/csharp <br>
+https://github.com/matterpreter/OffensiveCSharp <br>
 https://github.com/GhostPack (all the things)
