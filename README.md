@@ -8,7 +8,7 @@ Add the following aliases <br>
 https://github.com/GhostPack/Rubeus - done <br>
 https://github.com/GhostPack/Seatbelt - done <br>
 https://github.com/eladshamir/Internal-Monologue - done <br>
-https://github.com/djhohnstein/SharpWeb <br>
+https://github.com/djhohnstein/SharpWeb - done <br>
 https://github.com/BloodHoundAD/SharpHound <br>
 https://github.com/GhostPack/SharpUp <br>
 https://github.com/Kevin-Robertson/Inveigh <br>
