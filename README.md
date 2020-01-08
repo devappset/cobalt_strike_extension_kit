@@ -11,7 +11,7 @@ https://github.com/eladshamir/Internal-Monologue - done <br>
 https://github.com/djhohnstein/SharpWeb - done <br>
 https://github.com/BloodHoundAD/SharpHound - done <br>
 https://github.com/GhostPack/SharpUp - done <br>
-https://github.com/Kevin-Robertson/Inveigh <br>
+https://github.com/Kevin-Robertson/InveighZero - done <br>
 https://github.com/anthemtotheego/SharpExec <br>
 https://github.com/fireeye/SharPersist <br>
 https://github.com/0xbadjuju/WheresMyImplant <br>
