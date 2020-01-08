@@ -20,8 +20,7 @@ https://github.com/rvrsh3ll/SharpCOM - done <br>
 https://github.com/rvrsh3ll/SharpPrinter <br>
 https://github.com/rvrsh3ll/SharpFruit - done <br>
 https://github.com/rvrsh3ll/SharpExcel4-DCOM - done <br>
-https://github.com/fireeye/DueDLLigence <br>
-https://github.com/fireeye/ADFSDump <br>
+https://github.com/fireeye/ADFSDump - done <br>
 https://github.com/leoloobeek/csharp <br>
 https://github.com/matterpreter/OffensiveCSharp <br>
 https://github.com/tevora-threat/SharpView - done <br>
