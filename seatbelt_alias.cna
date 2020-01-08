@@ -1,4 +1,4 @@
-beacon_command_register("seatbelt", "performs a number of "safety checks" from both offensive and defensive perspectives.",
+beacon_command_register("seatbelt", "performs a number of 'safety checks' from both offensive and defensive perspectives.",
 	"Usage: seatbelt [arguments]\n\n" .
 	"Uses execute-assembly to run the assembly and takes given arguments\n");
 alias seatbelt{
