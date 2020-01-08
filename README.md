@@ -18,8 +18,8 @@ https://github.com/0xbadjuju/WheresMyImplant <br>
 https://github.com/cobbr/SharpSploit <br>
 https://github.com/rvrsh3ll/SharpCOM <br>
 https://github.com/rvrsh3ll/SharpPrinter <br>
-https://github.com/rvrsh3ll/SharpFruit <br>
-https://github.com/rvrsh3ll/SharpExcel4-DCOM <br>
+https://github.com/rvrsh3ll/SharpFruit - done <br>
+https://github.com/rvrsh3ll/SharpExcel4-DCOM - done <br>
 https://github.com/fireeye/DueDLLigence <br>
 https://github.com/fireeye/ADFSDump <br>
 https://github.com/leoloobeek/csharp <br>
