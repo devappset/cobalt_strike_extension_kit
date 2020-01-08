@@ -4,7 +4,7 @@ beacon_command_register("seatbelt", "performs a number of 'safety checks' from b
 alias seatbelt{
 	local('$bid $asm $desc @args $argu');
 	$bid = $1;
-	$asm = "/opt/exe/SeatBelt.exe";
+	$asm = "/opt/exe/Seatbelt.exe";
 	$desc = "SeatBelt";
 	@args = @_;
 	remove(@args, $bid);
