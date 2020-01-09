@@ -1,4 +1,4 @@
-beacon_command_register("sharpwmi", "Privilege Escalation Checks",
+beacon_command_register("sharpwmi", "SharpWMI is a C# implementation of various WMI functionality.",
 	"Usage: sharpwmi [arguments]\n\n" .
 	"Uses execute-assembly to run the assembly and takes given arguments\n");
 alias sharpwmi{
