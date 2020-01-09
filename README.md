@@ -24,5 +24,6 @@ https://github.com/fireeye/ADFSDump - done <br>
 https://github.com/matterpreter/OffensiveCSharp <br>
 https://github.com/matterpreter/OffensiveCSharp/tree/master/CredPhisher - done <br>
 https://github.com/matterpreter/OffensiveCSharp/tree/master/UnqoutedPath - done <br>
+https://github.com/matterpreter/OffensiveCSharp/tree/master/MockDirUACBypass/MockDirUACBypass - done <br>
 https://github.com/tevora-threat/SharpView - done <br>
 https://github.com/GhostPack (all the things)
