@@ -31,4 +31,5 @@ https://github.com/GhostPack (all the things)
 https://github.com/GhostPack/Rubeus - done <br>
 https://github.com/GhostPack/Seatbelt - done <br>
 https://github.com/GhostPack/SharpUp - done <br>
+https://github.com/GhostPack/SafetyKatz - done <br>
 
