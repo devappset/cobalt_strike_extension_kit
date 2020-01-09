@@ -25,6 +25,9 @@ https://github.com/matterpreter/OffensiveCSharp/tree/master/UnqoutedPath - done 
 https://github.com/matterpreter/OffensiveCSharp/tree/master/MockDirUACBypass/MockDirUACBypass - done <br>
 https://github.com/matterpreter/OffensiveCSharp/tree/master/SearchSessions - done <br>
 https://github.com/tevora-threat/SharpView - done <br>
+https://github.com/Mr-Un1k0d3r/SCShell - need to see what this is <br>
+https://github.com/HunnicCyber/SharpSniper <br>
+https://github.com/HunnicCyber/SharpSniper <br>
 <br>
 https://github.com/GhostPack (all the things)
 <br>
