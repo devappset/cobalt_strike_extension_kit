@@ -5,12 +5,10 @@ These templates assume your C# files are in /opt/exe/ please change according to
 
 TODO:
 Add the following aliases <br>
-https://github.com/GhostPack/Rubeus - done <br>
-https://github.com/GhostPack/Seatbelt - done <br>
+
 https://github.com/eladshamir/Internal-Monologue - done <br>
 https://github.com/djhohnstein/SharpWeb - done <br>
 https://github.com/BloodHoundAD/SharpHound - done <br>
-https://github.com/GhostPack/SharpUp - done <br>
 https://github.com/Kevin-Robertson/InveighZero - done <br>
 https://github.com/anthemtotheego/SharpExec - done <br>
 https://github.com/fireeye/SharPersist - done <br>
@@ -25,5 +23,10 @@ https://github.com/matterpreter/OffensiveCSharp <br>
 https://github.com/matterpreter/OffensiveCSharp/tree/master/CredPhisher - done <br>
 https://github.com/matterpreter/OffensiveCSharp/tree/master/UnqoutedPath - done <br>
 https://github.com/matterpreter/OffensiveCSharp/tree/master/MockDirUACBypass/MockDirUACBypass - done <br>
+https://github.com/matterpreter/OffensiveCSharp/tree/master/SearchSessions - done <br>
 https://github.com/tevora-threat/SharpView - done <br>
 https://github.com/GhostPack (all the things)
+https://github.com/GhostPack/Rubeus - done <br>
+https://github.com/GhostPack/Seatbelt - done <br>
+https://github.com/GhostPack/SharpUp - done <br>
+
