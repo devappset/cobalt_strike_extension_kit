@@ -1,0 +1,6 @@
+@aggressor =  ls('/opt/cobalt_aliases/scripts');
+prinln("[+] Importing:");
+foreach $file (@aggressor){ 
+	include($file);
+	println("   $file");
+}
