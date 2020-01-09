@@ -2,7 +2,7 @@ beacon_command_register("mockdiruacbypass", "Creates a mock trusted directory an
 	"Usage: mockdiruacbypass [arguments]\n\n" .
 	"Uses execute-assembly to run the assembly and takes given arguments\n");
 	"Whitelisted exe list cttunesvr.exe, migsetup.exe, oobe.exe, provisionshare.exe, spinstall.exe\n");
-	"More whitelisted exes spinstall.exe, inetmgr.exe, mmc.exe,  pkgmgr.exe, provisionstorage.exe\n";
+	"More whitelisted exes spinstall.exe, inetmgr.exe, mmc.exe,  pkgmgr.exe, provisionstorage.exe\n");
 alias mockdiruacbypass{
 	local('$bid $asm $desc @args $argu');
 	$bid = $1;
