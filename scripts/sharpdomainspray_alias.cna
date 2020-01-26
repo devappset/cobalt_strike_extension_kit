@@ -6,7 +6,7 @@ beacon_command_register("sharpdomainspray", "Takes a password then finds users i
 alias sharpdomainspray{
 	local('$bid $asm $desc @args $argu');
 	$bid = $1;
-	$asm = "/opt/exe/SharpDomainSpray.exe";
+	$asm = "/opt/cobalt_strike_extension_kit/exe/SharpDomainSpray.exe";
 	$desc = "SharpDomainSpray";
 	@args = @_;
 	remove(@args, $bid);
