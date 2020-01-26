@@ -4,7 +4,7 @@ beacon_command_register("credphisher", "C# Prompts the current user for their cr
 alias credphisher{
 	local('$bid $asm $desc @args $argu');
 	$bid = $1;
-	$asm = "/opt/exe/CredPhisher.exe";
+	$asm = "/opt/cobalt_strike_extension_kit/exe/CredPhisher.exe";
 	$desc = "CredPhisher";
 	@args = @_;
 	remove(@args, $bid);
