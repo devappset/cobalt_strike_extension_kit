@@ -4,7 +4,7 @@ beacon_command_register("sharpfruit", "Aid Penetration Testers in finding juicy 
 alias sharpfruit{
 	local('$bid $asm $desc @args $argu');
 	$bid = $1;
-	$asm = "/opt/exe/SharpFruit.exe";
+	$asm = "/opt/cobalt_strike_extension_kit/exe/SharpFruit.exe";
 	$desc = "SharpFruit";
 	@args = @_;
 	remove(@args, $bid);
