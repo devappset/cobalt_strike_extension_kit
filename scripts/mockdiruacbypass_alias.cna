@@ -6,7 +6,7 @@ beacon_command_register("mockdiruacbypass", "Creates a mock trusted directory an
 alias mockdiruacbypass{
 	local('$bid $asm $desc @args $argu');
 	$bid = $1;
-	$asm = "/opt/exe/MockDirUACBypass.exe";
+	$asm = "/opt/cobalt_strike_extension_kit/exe/MockDirUACBypass.exe";
 	$desc = "MockDirUACBypass";
 	@args = @_;
 	remove(@args, $bid);
