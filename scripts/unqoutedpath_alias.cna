@@ -4,7 +4,7 @@ beacon_command_register("unqoutedpath", "Outputs a list of unquoted service path
 alias unqoutedpath{
 	local('$bid $asm $desc @args $argu');
 	$bid = $1;
-	$asm = "/opt/exe/UnqoutedPath.exe";
+	$asm = "/opt/cobalt_strike_extension_kit/exe/UnqoutedPath.exe";
 	$desc = "UnqoutedPath";
 	@args = @_;
 	remove(@args, $bid);
