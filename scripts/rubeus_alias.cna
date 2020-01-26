@@ -4,7 +4,7 @@ beacon_command_register("rubeus", "Executes Rubeus assembly",
 alias rubeus{
 	local('$bid $asm $desc @args $argu');
 	$bid = $1;
-	$asm = "/opt/exe/Rubeus.exe";
+	$asm = "/opt/cobalt_strike_extension_kit/exe/Rubeus.exe";
 	$desc = "Rubeus";
 	@args = @_;
 	remove(@args, $bid);
