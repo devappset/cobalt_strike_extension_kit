@@ -1,7 +1,11 @@
-# cobalt_aliases
+# cobalt_strike_extension_kit
 Tired of typing execute-assembly everytime you use Cobalt Strike?  Clone this. Looking for an all in one for a lot of current tradecraft?  Clone this. <br>
 
-I do not take credit for most of this work.  A lot of this work was influenced by Outflank, Specter Ops (0xThirteen) Mainly, and seeing other Aggressor Script Repositories.  The purpose of this was to aggregate Cobalt Strike supplements used during engagements.
+I do not take credit for most of this work.  A lot of this work was influenced by Outflank, Specter Ops (0xThirteen) Mainly, and seeing other Aggressor Script Repositories.  The purpose of this was to aggregate Cobalt Strike supplements used during engagements. <br>
+
+<br>
+
+Other very helpful contributors include N173Hawk and Yeti-Sec.
 
 
 Usage <br>
