@@ -4,7 +4,7 @@ beacon_command_register("adfsdump", "A C# tool to dump all sorts of goodies from
 alias adfsdump{
 	local('$bid $asm $desc @args $argu');
 	$bid = $1;
-	$asm = "/opt/exe/ADFSDump.exe";
+	$asm = "/opt/cobalt_strike_extension_kit/exe/ADFSDump.exe";
 	$desc = "ADFSDump";
 	@args = @_;
 	remove(@args, $bid);
