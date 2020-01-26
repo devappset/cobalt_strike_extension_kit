@@ -43,7 +43,7 @@ beacon_command_register("Recon-AD-SPNs", "Use ADSI to query Active Directory use
 alias Recon-AD-Domain {
 	$bid = $1;
 	blog($bid, "Let's enumerate the domain\n");
-	bdllspawn($bid, script_resource("Recon-AD-Domain.dll"), "", "Recon-AD-Domain", 5000, false);
+	bdllspawn($bid, script_resource("exe/Recon-AD-Domain.dll"), "", "Recon-AD-Domain", 5000, false);
 }
 
 alias Recon-AD-Users {
@@ -60,12 +60,12 @@ alias Recon-AD-Users {
 	}
 	else if ($object eq "all") {
 		blog($bid, "Let's enumerate all users\n");
-		bdllspawn($bid, script_resource("Recon-AD-Users.dll"), "", "Recon-AD-Users", 5000, false);
+		bdllspawn($bid, script_resource("exe/Recon-AD-Users.dll"), "", "Recon-AD-Users", 5000, false);
 	}
 	else{
 		$param = "(sAMAccountName=" . $object . ")";
 		blog($bid, "Let's enumerate user " . $object . "\n");
-		bdllspawn($bid, script_resource("Recon-AD-Users.dll"), $param, "Recon-AD-Users", 5000, false);
+		bdllspawn($bid, script_resource("exe/Recon-AD-Users.dll"), $param, "Recon-AD-Users", 5000, false);
 	}
 }
 
@@ -83,12 +83,12 @@ alias Recon-AD-Computers {
 	}
 	else if ($object eq "all") {
 		blog($bid, "Let's enumerate all computers\n");
-		bdllspawn($1, script_resource("Recon-AD-Computers.dll"), "", "Recon-AD-Computers", 5000, false);
+		bdllspawn($1, script_resource("exe/Recon-AD-Computers.dll"), "", "Recon-AD-Computers", 5000, false);
 	}
 	else {
 		$param = "(cn=" . $object . ")";
 		blog($bid, "Let's enumerate computer " . $object . "\n");
-		bdllspawn($1, script_resource("Recon-AD-Computers.dll"), $param, "Recon-AD-Computers", 5000, false);
+		bdllspawn($1, script_resource("exe/Recon-AD-Computers.dll"), $param, "Recon-AD-Computers", 5000, false);
 	}
 }
 
@@ -112,7 +112,7 @@ alias Recon-AD-Groups {
 	}
 	else if ($object eq "all") {
 		blog($bid, "Let's enumerate all groups\n");
-		bdllspawn($1, script_resource("Recon-AD-Groups.dll"), "", "Recon-AD-Groups", 5000, false);
+		bdllspawn($1, script_resource("exe/Recon-AD-Groups.dll"), "", "Recon-AD-Groups", 5000, false);
 	}
 	else if (@args[1] eq ""){
 		$param = "(sAMAccountName=" . $object . ")";
@@ -133,7 +133,7 @@ alias Recon-AD-Groups {
 		$param = "(sAMAccountName=" . $object . " " . $object1 . " " . $object2 . " " . $object3 . " " . $object4 . " " . $object5 . ")";
 	}
 	blog($bid, "Let's enumerate group " . $object . " " . $object1 . " " . $object2 . " " . $object3 . " " . $object4 . " " . $object5"\n");
-	bdllspawn($1, script_resource("Recon-AD-Groups.dll"), $param, "Recon-AD-Groups", 5000, false);
+	bdllspawn($1, script_resource("exe/Recon-AD-Groups.dll"), $param, "Recon-AD-Groups", 5000, false);
 }
 
 alias Recon-AD-AllLocalGroups {
@@ -152,7 +152,7 @@ alias Recon-AD-AllLocalGroups {
 		$param = $object;
 	}
 	blog($bid, "Let's enumerate computer " . $object . " for localgroups\n");
-	bdllspawn($bid, script_resource("Recon-AD-AllLocalGroups.dll"), $param, "Recon-AD-AllLocalGroups", 5000, false);
+	bdllspawn($bid, script_resource("exe/Recon-AD-AllLocalGroups.dll"), $param, "Recon-AD-AllLocalGroups", 5000, false);
 }
 
 alias Recon-AD-LocalGroups {
@@ -183,11 +183,11 @@ alias Recon-AD-LocalGroups {
 		$param = $object . " " . $object1 . " " . $object2 . " " . $object3;
 	}
 	blog($bid, "Let's enumerate computer " . $object . " for localgroup " . $object1 . " " . $object2 . " " . $object3"\n");
-	bdllspawn($1, script_resource("Recon-AD-LocalGroups.dll"), $param, "Recon-AD-LocalGroups", 5000, false);
+	bdllspawn($1, script_resource("exe/Recon-AD-LocalGroups.dll"), $param, "Recon-AD-LocalGroups", 5000, false);
 }
 
 alias Recon-AD-SPNs {
 	$bid = $1;
 	blog($bid, "Let's enumerate all users with SPNs configured.\n");
-	bdllspawn($bid, script_resource("Recon-AD-SPNs.dll"), "servicePrincipalName=*", "Recon-AD-SPNs", 5000, false);
+	bdllspawn($bid, script_resource("exe/Recon-AD-SPNs.dll"), "servicePrincipalName=*", "Recon-AD-SPNs", 5000, false);
 }
