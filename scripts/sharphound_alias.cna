@@ -4,7 +4,7 @@ beacon_command_register("sharphound", "Uses graph theory to reveal the hidden an
 alias sharphound{
 	local('$bid $asm $desc @args $argu');
 	$bid = $1;
-	$asm = "/opt/exe/SharpHound.exe";
+	$asm = "/opt/cobalt_strike_extension_kit/exe/SharpHound.exe";
 	$desc = "SharpHound";
 	@args = @_;
 	remove(@args, $bid);
