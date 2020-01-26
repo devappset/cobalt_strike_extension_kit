@@ -5,7 +5,7 @@ beacon_command_register("sharpsniper", "Simple tool to find the IP address of us
 alias sharpsniper{
 	local('$bid $asm $desc @args $argu');
 	$bid = $1;
-	$asm = "/opt/exe/SharpSniper.exe";
+	$asm = "/opt/cobalt_strike_extension_kit/exe/SharpSniper.exe";
 	$desc = "SharpSniper";
 	@args = @_;
 	remove(@args, $bid);
