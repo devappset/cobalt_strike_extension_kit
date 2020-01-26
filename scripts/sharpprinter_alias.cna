@@ -4,7 +4,7 @@ beacon_command_register("sharpprinter", "C# tool to enumerate all visible networ
 alias sharpprinter{
 	local('$bid $asm $desc @args $argu');
 	$bid = $1;
-	$asm = "/opt/exe/SharpPrinter.exe";
+	$asm = "/opt/cobalt_strike_extension_kit/exe/SharpPrinter.exe";
 	$desc = "SharpPrinter";
 	@args = @_;
 	remove(@args, $bid);
