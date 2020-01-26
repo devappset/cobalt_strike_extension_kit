@@ -4,7 +4,7 @@ beacon_command_register("sharpcom", "Execute's commands via various DCOM methods
 alias sharpcom{
 	local('$bid $asm $desc @args $argu');
 	$bid = $1;
-	$asm = "/opt/exe/SharpCOM.exe";
+	$asm = "/opt/cobalt_strike_extension_kit/exe/SharpCOM.exe";
 	$desc = "SharpCOM";
 	@args = @_;
 	remove(@args, $bid);
