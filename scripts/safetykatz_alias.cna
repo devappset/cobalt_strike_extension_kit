@@ -4,7 +4,7 @@ beacon_command_register("safetykatz", "Creates minidump of lsass, loads custom m
 alias safetykatz{
 	local('$bid $asm $desc @args $argu');
 	$bid = $1;
-	$asm = "/opt/exe/SafetyKatz.exe";
+	$asm = "/opt/cobalt_strike_extension_kit/exe/SafetyKatz.exe";
 	$desc = "SafetyKatz";
 	@args = @_;
 	remove(@args, $bid);
