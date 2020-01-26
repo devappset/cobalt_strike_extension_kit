@@ -4,7 +4,7 @@ beacon_command_register("sharpwmi", "SharpWMI is a C# implementation of various 
 alias sharpwmi{
 	local('$bid $asm $desc @args $argu');
 	$bid = $1;
-	$asm = "/opt/exe/SharpWMI.exe";
+	$asm = "/opt/cobalt_strike_extension_kit/exe/SharpWMI.exe";
 	$desc = "SharpWMI";
 	@args = @_;
 	remove(@args, $bid);
