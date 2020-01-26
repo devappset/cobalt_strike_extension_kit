@@ -4,7 +4,7 @@ beacon_command_register("internal_monologue", "Invoke a local procedure call to 
 alias internal_monologue{
 	local('$bid $asm $desc @args $argu');
 	$bid = $1;
-	$asm = "/opt/exe/InternalMonologue.exe";
+	$asm = "/opt/cobalt_strike_extension_kit/exe/InternalMonologue.exe";
 	$desc = "InternalMonologue";
 	@args = @_;
 	remove(@args, $bid);
