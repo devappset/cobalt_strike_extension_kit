@@ -4,7 +4,7 @@ beacon_command_register("inveigh", "Spoofer and man-in-the-middle tool designed 
 alias inveigh{
 	local('$bid $asm $desc @args $argu');
 	$bid = $1;
-	$asm = "/opt/exe/Inveigh.exe";
+	$asm = "/opt/cobalt_strike_extension_kit/exe/Inveigh.exe";
 	$desc = "Inveigh";
 	@args = @_;
 	remove(@args, $bid);
