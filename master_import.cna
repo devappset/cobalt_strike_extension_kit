@@ -1,4 +1,4 @@
-@aggressor =  ls('/opt/cobalt_aliases/scripts');
+@aggressor =  ls('/opt/cobalt_strike_extension_kit/scripts');
 prinln("[+] Importing:");
 foreach $file (@aggressor){ 
 	include($file);
