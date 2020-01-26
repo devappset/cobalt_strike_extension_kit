@@ -4,7 +4,7 @@ beacon_command_register("sharpersist", "Windows persistence toolkit written in C
 alias sharpersist{
 	local('$bid $asm $desc @args $argu');
 	$bid = $1;
-	$asm = "/opt/exe/SharPersist.exe";
+	$asm = "/opt/cobalt_strike_extension_kit/exe/SharPersist.exe";
 	$desc = "SharPersist";
 	@args = @_;
 	remove(@args, $bid);
