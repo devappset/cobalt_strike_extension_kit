@@ -4,7 +4,7 @@ beacon_command_register("sharpview", "C# tool to gain network situational awaren
 alias sharpview{
 	local('$bid $asm $desc @args $argu');
 	$bid = $1;
-	$asm = "/opt/exe/SharpView.exe";
+	$asm = "/opt/cobalt_strike_extension_kit/exe/SharpView.exe";
 	$desc = "SharpView";
 	@args = @_;
 	remove(@args, $bid);
