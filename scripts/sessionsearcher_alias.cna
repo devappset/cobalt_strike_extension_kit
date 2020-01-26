@@ -4,7 +4,7 @@ beacon_command_register("searchsessions", "Searches all connected drives for PuT
 alias searchsessions{
 	local('$bid $asm $desc @args $argu');
 	$bid = $1;
-	$asm = "/opt/exe/SearchSessions.exe";
+	$asm = "/opt/cobalt_strike_extension_kit/exe/SearchSessions.exe";
 	$desc = "SearchSessions";
 	@args = @_;
 	remove(@args, $bid);
