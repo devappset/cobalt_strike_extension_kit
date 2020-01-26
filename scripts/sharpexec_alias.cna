@@ -4,7 +4,7 @@ beacon_command_register("sharpexec", "Offensive security C# tool designed to aid
 alias sharpexec{
 	local('$bid $asm $desc @args $argu');
 	$bid = $1;
-	$asm = "/opt/exe/SharpExec.exe";
+	$asm = "/opt/cobalt_strike_extension_kit/exe/SharpExec.exe";
 	$desc = "SharpExec";
 	@args = @_;
 	remove(@args, $bid);
