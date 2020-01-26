@@ -178,6 +178,33 @@ menu "Phishing Users"
 
 }
 
+menu "Privilege Escalation"
+
+{
+
+	
+
+########Run Watson by Rastamouse##################
+
+					
+
+		item "Run Watson to find missing patches"{
+
+			local('$bid');
+
+				foreach $bid ($1){
+
+					escalateprivs($bid);
+
+				}
+
+			}
+
+		
+
+
+
+}
 
 
 menu "Domain Computer Object Enumeration"
@@ -411,6 +438,16 @@ sub lockscreen{
 
 
 bexecute_assembly($1, script_resource('/exe/WindowsFormsApp9.exe'));
+
+
+
+}
+
+sub escalateprivs{
+
+
+
+bexecute_assembly($1, script_resource('/exe/Watson.exe'));
 
 
 
