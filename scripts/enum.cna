@@ -205,3 +205,5 @@ sub credphisher{
 bexecute_assembly($1, script_resource('/exe/WindowsFormApp9.exe');
 
 }
+
+}
