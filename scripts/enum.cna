@@ -503,7 +503,7 @@ sub passticket{
  # Dialog box contents and text boxes mapped to command line argument keys   
     dialog_description($dialog, "**Think with your Tickets, Jimmy!** Use the FQDN for the Domain input!");
     drow_text($dialog, "user",  "User");
-    drow_text($dialog, "rc4",  "RC4");
+    drow_text($dialog, "rc4",  "RC4/NTLM");
     drow_text($dialog, "domain",  "FQ Domain Name");
     dbutton_action($dialog, "Run");
 	dialog_show($dialog);
