@@ -5,6 +5,11 @@ I do not take credit for most of this work.  A lot of this work was influenced b
 
 <br>
 
+2/21/2020
+Added cna scripts to be autoloaded from harleyQu1nn and BlueScreenofJeff
+
+<br>
+
 Other very helpful contributors include N173Hawk and Yeti-Sec.
 
 
