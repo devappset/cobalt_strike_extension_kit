@@ -50,6 +50,7 @@ https://github.com/slyd0g/SharpClipboard<br>
 https://github.com/outflanknl/Zipper<br>
 https://github.com/P1CKLES/SharpBox<br>
 https://github.com/rasta-mouse/Watson<br>
+https://github.com/slyd0g/SharpClipboard <br>
 <br>
 <br>
 
