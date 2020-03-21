@@ -395,7 +395,7 @@ sub vaultcmd{
 
 
 
-brun($1, ('vaultcmd.exe'), '/listcreds:"Windows Credentials" , /all');
+brun($1, 'vaultcmd.exe', '/listcreds:"Windows Credentials"' , '/all');
 
 
 
