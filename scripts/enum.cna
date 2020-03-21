@@ -310,7 +310,7 @@ menu "Credentials and Kerberos"
 
 					
 
-		item "List Current Kerberos Tickets"{
+		item "List Current Kerberos Tickets AKA Triage"{
 
 			local('$bid');
 
