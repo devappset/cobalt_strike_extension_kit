@@ -403,7 +403,7 @@ menu "Credentials and Kerberos"
 
 ###########################
 
-sub windowsvaultcmd{
+sub webvaultcmd{
 
 
 
