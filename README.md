@@ -12,6 +12,14 @@ Added cna scripts to be autoloaded from harleyQu1nn and BlueScreenofJeff
 
 Other very helpful contributors include N173Hawk and Yeti-Sec.
 
+TODO <br>
+<br>
+Make functionality for both .net 3.5 and 4.0
+<br>
+Obfuscate code with Obfuscar
+<br>
+Re-Arrange files and functions to be more workflow driven
+
 
 Usage <br>
 cd /opt/ <br>
