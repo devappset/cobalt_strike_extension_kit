@@ -5,6 +5,11 @@ I do not take credit for most of this work.  A lot of this work was influenced b
 
 <br>
 
+For OPSec, you may want to provide your own binaries.  The binaries provided may get flagged by A/V, but do work in lower maturity environments and Certification lab environments.
+<br>
+
+<br>
+
 3/29/2020
 Added some Drop Down Mimikatz Functionalities, thanks to rvrsh3ll for help with variables.
 <br>
