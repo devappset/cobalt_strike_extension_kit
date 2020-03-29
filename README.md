@@ -5,6 +5,10 @@ I do not take credit for most of this work.  A lot of this work was influenced b
 
 <br>
 
+3/29/2020
+Added some Drop Down Mimikatz Functionalities, thanks to rvrsh3ll for help with variables.
+<br>
+
 2/21/2020
 Added cna scripts to be autoloaded from harleyQu1nn and BlueScreenofJeff
 
