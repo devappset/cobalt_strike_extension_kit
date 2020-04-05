@@ -1022,7 +1022,7 @@ menu "Credentials and Kerberos"
 
 
 
-                    bexecute_assembly($bids, script_resource('/exe/SharpView.exe'), "Get-DomainObject -Identity . $1 -Properties ms-mcs-admpwd");
+                    bexecute_assembly($bids, script_resource('/exe/SharpView.exe'), "Get-DomainObject -Identity $1 -Properties ms-mcs-admpwd");
                   
 
 
