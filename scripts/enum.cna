@@ -1004,7 +1004,110 @@ menu "Pass The Ticket"
 
 
 
-					
+menu "Got Admin?" {
+
+
+
+{
+
+
+
+       item "Find Admin Access (Sneaky)"{
+
+                    bexecute_assembly($bids, script_resource('/exe/SharpView.exe'), "Find-LocalAdminAccess -Threads 1 -Jitter 1");
+                  
+
+                }, $bids => $1));
+
+
+
+			}
+			
+	{
+			
+			
+       item "Find Admin Access (Loud)"{
+
+                    bexecute_assembly($bids, script_resource('/exe/SharpView.exe'), "Find-LocalAdminAccess");
+                  
+
+                }, $bids => $1));
+                
+                }
+
+
+
+			
+{			
+			
+       item "Find Admin & Share Access (Sneaky)"{
+
+                    bexecute_assembly($bids, script_resource('/exe/SharpView.exe'), "Find-LocalAdminAccess -Threads 1 -Jitter 1 -CheckShareAccess -Delay 20");
+                  
+
+                }, $bids => $1));
+                }
+
+
+
+	{		
+			
+       item "Find Admin & Share Access (Sneaky-ish)"{
+
+                    bexecute_assembly($bids, script_resource('/exe/SharpView.exe'), "Find-LocalAdminAccess -Threads 1 -Jitter 1 -CheckShareAccess -Delay 7");
+                  
+
+                }, $bids => $1));
+                
+                }
+
+
+
+			
+		{	
+			
+       item "Find Admin & Share Access (Loud)"{
+
+                    bexecute_assembly($bids, script_resource('/exe/SharpView.exe'), "Find-LocalAdminAccess -CheckShareAccess");
+                  
+
+                }, $bids => $1));
+                
+                }
+
+
+
+			{
+			
+			       item "Find Admin Access Snipe Computer"{
+			       
+			              prompt_text("Computer Name - FQDN)", "", lambda({
+
+                    bexecute_assembly($bids, script_resource('/exe/SharpView.exe'), "Find-LocalAdminAccess -Threads 1 -Jitter 1 -CheckShareAccess -ComputerName $1");
+                  
+
+                }, $bids => $1));
+                }
+
+
+
+			}
+			
+			{
+			
+			
+       item "Find Admin & Share Access (Loud)"{
+
+                    bexecute_assembly($bids, script_resource('/exe/SharpView.exe'), "Find-LocalAdminAccess -CheckShareAccess");
+                  
+
+                }, $bids => $1));
+                }
+                }
+
+
+
+								
 
 menu "Credentials and Kerberos"
 
