@@ -1103,7 +1103,7 @@ menu "Got Admin?" {
 
                 }, $bids => $1));
                 }
-                }
+                
 
 
 
@@ -1374,6 +1374,8 @@ menu "Credentials and Kerberos"
 
 
 	}
+	
+}
 
 
 
