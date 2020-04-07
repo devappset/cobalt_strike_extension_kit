@@ -10,6 +10,11 @@ For OPSec, you may want to provide your own binaries.  The binaries provided may
 
 <br>
 
+4/07/2020
+<br>
+Added some more Sharpview functions to "Find-LocalAdminAccess" as well as fed in more of OutFlank's process enumeration "Ps-Tools"
+<br>
+
 3/29/2020
 Added some Drop Down Mimikatz Functionalities, thanks to rvrsh3ll for help with variables.
 <br>
