@@ -30,8 +30,6 @@ TODO <br>
 <br>
 Make functionality for both .net 3.5 and 4.0
 <br>
-Obfuscate code with Obfuscar
-<br>
 Re-Arrange files and functions to be more workflow driven
 
 
@@ -81,3 +79,4 @@ These Tools are not C#, but need to be incorporated into toolset<br>
 https://github.com/outflanknl/Spray-AD<br>
 https://github.com/outflanknl/Recon-AD<br>
 https://github.com/0x09AL/RdpThief<br>
+https://github.com/outflanknl/Ps-Tools<br>
