@@ -128,6 +128,58 @@ menu "Phishing Users"
 		
 }
 ##############################################################################End of Menu
+menu "Find Files"
+
+{
+
+######## Find Domain Share  ##################
+
+					
+
+		item "Find Domain Shares"{
+
+			local('$bid');
+
+				foreach $bid ($1){
+
+					finddomainshare($bid);
+
+				}
+
+			}
+				
+######## Find Interesting Domain Shares ##################
+
+					
+
+		item "Find Interesting Domain Shares"{
+
+			local('$bid');
+
+				foreach $bid ($1){
+
+					findinterestingdomainsharefile($bid);
+
+				}
+
+			}
+
+######## Find File Servers ##################
+
+		item "Find File Servers"{
+
+			local('$bid');
+
+				foreach $bid ($1){
+
+					getnetfileserver($bid);
+
+				}
+
+			}
+
+}
+
 ##############################################################################End of Menu
 menu "Privilege Escalation"
 {
@@ -427,6 +479,18 @@ bexecute_assembly($1, script_resource('/exe/WindowsFormsApp9.exe'));
 ########################## Run Watson to find missing patches
 sub escalateprivs{
 bexecute_assembly($1, script_resource('/exe/Watson.exe'));
+}
+########################## SharpView Find Domain Share
+sub finddomainshare{
+bexecute_assembly($1, script_resource('/exe/SharpView.exe'), "Find-DomainShare");
+}
+########################## SharpView Find Interesting Domain Shares
+sub findinterestingdomainsharefile{
+bexecute_assembly($1, script_resource('/exe/SharpView.exe'), "Find-InterestingDomainShareFile");
+}
+########################## SharpView Find File Servers
+sub getnetfileserver{
+bexecute_assembly($1, script_resource('/exe/SharpView.exe'), "Get-NetFileServer");
 }
 ########################## Pass the ticket
 sub passticket{
