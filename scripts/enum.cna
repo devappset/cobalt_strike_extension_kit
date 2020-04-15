@@ -251,6 +251,24 @@ menu "Privilege Escalation"
 				}
 			}
 }
+
+########Run SharpUp##################		
+		item "Run SharpUp to find privilege escalation"{
+			local('$bid');
+				foreach $bid ($1){
+					sharpup($bid);
+				}
+			}
+}
+
+########Run Sweet Potato##################		
+		item "Run Sweet Potato (IIS Privesc)"{
+			local('$bid');
+				foreach $bid ($1){
+					sweetpotato($bid);
+				}
+			}
+}
 ##############################################################################End of Menu
 menu "Domain Computer Object Enumeration"
 {
@@ -613,6 +631,12 @@ bexecute_assembly($1, script_resource('../exe/SharpView.exe'), "Find-LocalAdminA
 }
 sub loudshare{
 bexecute_assembly($1, script_resource('../exe/SharpView.exe'), "Find-LocalAdminAccess -CheckShareAccess");
+}
+sub sharpup{
+bexecute_assembly($1, script_resource('../exe/SharpUp.exe'));
+}
+sub sweetpotato{
+bexecute_assembly($1, script_resource('../exe/SweetPotato.exe'));
 }
 sub snipeaccess{
 prompt_text("Computer Name - FQDN)", "", lambda({
