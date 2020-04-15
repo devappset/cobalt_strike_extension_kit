@@ -636,7 +636,7 @@ sub sharpup{
 bexecute_assembly($1, script_resource('../exe/SharpUp.exe'));
 }
 sub sweetpotato{
-bexecute_assembly($1, script_resource('../exe/SweetPotato.exe'));
+bexecute_assembly($1, script_resource('exe/SweetPotato.exe'));
 }
 sub snipeaccess{
 prompt_text("Computer Name - FQDN)", "", lambda({
