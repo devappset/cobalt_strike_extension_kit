@@ -128,6 +128,43 @@ menu "Phishing Users"
 		
 }
 ##############################################################################End of Menu
+
+menu "Find Users"
+
+{
+#
+
+		item "Find User Location (Need Read Access to DC)"{
+
+			local('$bid');
+
+				foreach $bid ($1){
+
+					userloc_DA($bid);
+
+				}
+
+			}
+			
+		item "Find User Location (Use Creds)"{
+
+			local('$bid');
+
+				foreach $bid ($1){
+
+					userloc_creds($bid);
+
+				}
+
+			}
+
+
+
+
+#
+}
+
+
 menu "Find Files"
 
 {
