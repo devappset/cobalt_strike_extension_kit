@@ -250,7 +250,7 @@ menu "Privilege Escalation"
 					winpeas($bid);
 				}
 			}
-}
+
 
 ########Run SharpUp##################		
 		item "Run SharpUp to find privilege escalation"{
@@ -259,7 +259,7 @@ menu "Privilege Escalation"
 					sharpup($bid);
 				}
 			}
-}
+
 
 ########Run Sweet Potato##################		
 		item "Run Sweet Potato (IIS Privesc)"{
