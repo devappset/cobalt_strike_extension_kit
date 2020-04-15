@@ -192,7 +192,13 @@ menu "Privilege Escalation"
 					escalateprivs($bid);
 				}
 			}
-		
+########Run WinPEAS##################		
+		item "Run WinPEAS to find privilege escalation"{
+			local('$bid');
+				foreach $bid ($1){
+					winpeas($bid);
+				}
+			}
 }
 ##############################################################################End of Menu
 menu "Domain Computer Object Enumeration"
@@ -479,6 +485,9 @@ bexecute_assembly($1, script_resource('/exe/WindowsFormsApp9.exe'));
 ########################## Run Watson to find missing patches
 sub escalateprivs{
 bexecute_assembly($1, script_resource('/exe/Watson.exe'));
+}
+sub winpeas{
+bexecute_assembly($1, script_resource('/exe/winPEASany.exe'));
 }
 ########################## SharpView Find Domain Share
 sub finddomainshare{
