@@ -621,7 +621,7 @@ sub sneakyadmin{
 bexecute_assembly($1, script_resource('../exe/SharpView.exe'), "Find-LocalAdminAccess -Threads 1 -Jitter 1 -Delay 20");
 }
 sub loudadmin{
-bexecute_assembly($1, script_resource('../exe/SharpView.exe'), "Find-LocalAdminAccess");
+bexecute_assembly($1, script_resource('/exe/SharpView.exe'), "Find-LocalAdminAccess");
 }
 sub sneakyshare{
 bexecute_assembly($1, script_resource('../exe/SharpView.exe'), "Find-LocalAdminAccess -Threads 1 -Jitter 1 -CheckShareAccess -Delay 20");
