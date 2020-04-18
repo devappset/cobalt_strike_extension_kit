@@ -2,7 +2,7 @@ popup beacon_top {
 
 menu "Kerberos Delegation Abuse"{
 
-item "Monitor Tickets"{
+item "Monitor Tickets/Spooler Exploit"{
 
 			local('$bid');
 				foreach $bid ($1){
