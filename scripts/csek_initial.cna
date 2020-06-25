@@ -78,7 +78,7 @@ item "SitRep (LOUD)  - T1082"{
 #################################################
 menu "OPSec/CYA"{
 
-include('/opt/CobaltStrikeExtensionKit_BETA/scripts/subscripts/edr.cna')
+include('/opt/cobalt_strike_extension_kit/scripts/subscripts/edr.cna')
 
 #A/V Query (Not OPSec)
 
