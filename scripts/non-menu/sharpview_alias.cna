@@ -1,0 +1,19 @@
+beacon_command_register("sharpview", "C# tool to gain network situational awareness on Windows domains.",
+	"Usage: sharpview [arguments]\n\n" .
+	"Uses execute-assembly to run the assembly and takes given arguments\n");
+alias sharpview{
+	local('$bid $asm $desc @args $argu');
+	$bid = $1;
+	$asm = "/opt/cobalt_strike_extension_kit/exe/SharpView.exe";
+	$desc = "SharpView";
+	@args = @_;
+	remove(@args, $bid);
+	$argu = join(' ', @args);
+	if ($argu eq ""){
+		blog2($bid, "" . dstamp(ticks()) . " Executing $desc");
+	}
+	else{
+		blog2($bid, "" . dstamp(ticks()) . " Executing $desc \'$argu\'");
+	}
+	bexecute_assembly!($bid, $asm, $argu);
+}
