@@ -1,5 +1,5 @@
 # cobalt_strike_extension_kit
-Tired of typing execute-assembly everytime you use Cobalt Strike?  Clone this. Looking for an all in one for a lot of current tradecraft?  Clone this. <br>
+Looking for an all in one for a lot of current tradecraft?  Clone this. <br>
 
 I do not take credit for most of this work.  A lot of this work was influenced by Outflank, Specter Ops (0xThirteen) Mainly, and seeing other Aggressor Script Repositories.  The purpose of this was to aggregate Cobalt Strike supplements used during engagements. <br>
 
@@ -10,28 +10,16 @@ For OPSec, you may want to provide your own binaries.  The binaries provided may
 
 <br>
 
-4/07/2020
+06/25/2020 - Added more tradecraft and made Extension Kit more workflow driven.  Some items are mapped to Mitre - will expand on this in the future.
 <br>
-Added some more Sharpview functions to "Find-LocalAdminAccess" as well as fed in more of OutFlank's process enumeration "Ps-Tools"
 <br>
-
-3/29/2020
-Added some Drop Down Mimikatz Functionalities, thanks to rvrsh3ll for help with variables.
+To-Do
 <br>
-
-2/21/2020
-Added cna scripts to be autoloaded from harleyQu1nn and BlueScreenofJeff
-
+Continue Expanding, try to implement more Offense In Depth e.g., multiple ways to do one thing.
 <br>
-
-Other very helpful contributors include N173Hawk and Yeti-Sec.
-
-TODO <br>
+With Offense In Depth, add items that reflect low security maturity and items that reflect higher level maturity to gauge clients.  Also may be useful in purple team engagements when using various forms of tradecraft for example - kerberoast with powershell and kerberoast with rubeus
 <br>
-Make functionality for both .net 3.5 and 4.0
-<br>
-Re-Arrange files and functions to be more workflow driven
-
+Improve Mitre Mapping to items
 
 Usage <br>
 cd /opt/ <br>
