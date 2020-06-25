@@ -15,15 +15,20 @@ For OPSec, you may want to provide your own binaries.  The binaries provided may
 <br>
 To-Do
 <br>
+<br>
 Continue Expanding, try to implement more Offense In Depth e.g., multiple ways to do one thing.
+<br>
 <br>
 With Offense In Depth, add items that reflect low security maturity and items that reflect higher level maturity to gauge clients.  Also may be useful in purple team engagements when using various forms of tradecraft for example - kerberoast with powershell and kerberoast with rubeus
 <br>
+<br>
 Improve Mitre Mapping to items
-
+<br>
+<br>
 Usage <br>
 cd /opt/ <br>
 git clone https://github.com/josephkingstone/cobaltstrike_extension_kit.git <br>
+Go to cobalt strike's script manager and load csek.cna
 
 
 <br>
