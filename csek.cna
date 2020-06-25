@@ -10,7 +10,7 @@
            ############################		  Load Non-Menu Scripts		############################
                              
                                 
-@aggressor =  ls('/opt/CobaltStrikeExtensionKit_BETA/scripts/non-menu');
+@aggressor =  ls('/opt/cobalt_strike_extension_kit/scripts/non-menu');
 println("[+] Importing:");
 foreach $file (@aggressor){ 
 	include($file);
@@ -43,34 +43,33 @@ popup beacon_top {
 
 menu "Initial Access" {
 
-include('/opt/CobaltStrikeExtensionKit_BETA/scripts/csek_initial.cna')
+include('/opt/cobalt_strike_extension_kit/scripts/csek_initial.cna')
 }
 
 menu "Persistence" {
  
-include('/opt/CobaltStrikeExtensionKit_BETA/scripts/csek_persistence.cna') 
+include('/opt/cobalt_strike_extension_kit/scripts/csek_persistence.cna') 
 } 
 	
 menu "Enumeration" {
 
-include('//opt/CobaltStrikeExtensionKit_BETA/scripts/csek_enum.cna')
+include('//opt/cobalt_strike_extension_kit/scripts/csek_enum.cna')
 }
 
 menu "Lateral Movement" {
 
-include('/opt/CobaltStrikeExtensionKit_BETA/scripts/csek_latmove.cna')
+include('/opt/cobalt_strike_extension_kit/scripts/csek_latmove.cna')
 }
 
 
 menu "Privilege Escalation" {
  
-include('/opt/CobaltStrikeExtensionKit_BETA/scripts/csek_privesc.cna')
+include('/opt/cobalt_strike_extension_kit/scripts/csek_privesc.cna')
 }
  
 menu "Credential Access"{
-include('/opt/CobaltStrikeExtensionKit_BETA/scripts/csek_credential-access_dev.cna')
+include('/opt/cobalt_strike_extension_kit/scripts/csek_credential-access_dev.cna')
 }
 
 }
 }
-
