@@ -217,6 +217,74 @@ item "Run Sweet Potato (IIS Privesc)"{
 
 
 
+#################################################
+
+#   UAC Bypasses
+
+#################################################
+menu "UAC Bypasses"{
+
+item "eventvwr bypass"{
+	local('$bid');
+		foreach $bid ($1){
+			eventvwr_bypass($bid);
+		}
+	}
+
+item "fodhelper bypass"{
+	local('$bid');
+		foreach $bid ($1){
+			fodhelper_bypass($bid);
+		}
+	}
+
+item "computerdefaults bypass"{
+	local('$bid');
+		foreach $bid ($1){
+			computerdefaults_bypass($bid);
+		}
+	}
+
+item "sdclt bypass"{
+	local('$bid');
+		foreach $bid ($1){
+			sdclt_bypass($bid);
+		}
+	}
+
+item "slui bypass"{
+	local('$bid');
+		foreach $bid ($1){
+			slui_bypass($bid);
+		}
+	}
+
+item "DiskCleanup bypass"{
+	local('$bid');
+		foreach $bid ($1){
+			diskCleanup_bypass($bid);
+		}
+	}
+
+
+
+
+} #End of UAC Bypass Menu
+
+
+#################################################
+
+#   UAC Bypass Functions
+
+#################################################
+
+
+
+
+#Please Add UAC Bypass Functions - https://github.com/FatRodzianko/SharpBypassUAC
+
+
+
 
 
 
@@ -458,5 +526,4 @@ bexecute_assembly($1, script_resource('/exe/SharpUp.exe'));
 sub sweetpotato{
 bexecute_assembly($1, script_resource('/exe/SweetPotato.exe'));
 }
-
 
