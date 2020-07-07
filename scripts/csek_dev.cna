@@ -2,9 +2,36 @@
 ##
 ## Development Menu
 ##
+###########################################
+
+#################################################
+##
+##   Service Enumeration Menu
+##
+#################################################
+
+menu "Service Enumeration"{
+
+# Enumerate Services
+item "Service Enumeration - Current Computer - T1046"{
+
+    local('$bid');
+        foreach $bid ($1){
+            serviceenumerationlocalhost($bid);
+      }
+   }
 
 
+# Enumerate Remote Services
+item "Service Enumeration - Remote Computer - T1046"{
 
+    local('$bid');
+        foreach $bid ($1){
+            getremoteservices($bid);
+      }
+   }
+
+} #End Menu Popup
 
 
 ###########################################
@@ -12,3 +39,21 @@
 ## Development Functions
 ##
 ###########################################
+
+
+#################################################
+##
+##   Service Enumeration Functions
+##
+#################################################
+
+sub serviceenumerationlocalhost{
+bexecute_assembly($1, script_resource('/exe/AtYourService.exe'));
+}
+
+# View Remote Services
+sub getremoteservices{
+prompt_text("Remote Machine - (FQDN)", "", lambda({
+bexecute_assembly($bids, script_resource('/exe/AtYourService.exe'), "$1");
+}, $bids => $1));
+}

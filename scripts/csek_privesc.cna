@@ -499,7 +499,7 @@ bexecute_assembly($1, script_resource('/exe/winPEASany.exe'));
 
 #################################################
 sub sharpup{
-bexecute_assembly($1, script_resource('../exe/SharpUp.exe'));
+bexecute_assembly($1, script_resource('/exe/SharpUp.exe'));
 }
 
 #################################################

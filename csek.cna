@@ -46,6 +46,11 @@ menu "Initial Access" {
 include('/opt/cobalt_strike_extension_kit/scripts/csek_initial.cna')
 }
 
+menu "Defense Evasion"{
+
+include('/opt/cobalt_strike_extension_kit/scripts/csek_defev.cna')
+}
+
 menu "Persistence" {
  
 include('/opt/cobalt_strike_extension_kit/scripts/csek_persistence.cna') 
@@ -53,7 +58,7 @@ include('/opt/cobalt_strike_extension_kit/scripts/csek_persistence.cna')
 	
 menu "Enumeration" {
 
-include('//opt/cobalt_strike_extension_kit/scripts/csek_enum.cna')
+include('/opt/cobalt_strike_extension_kit/scripts/csek_enum.cna')
 }
 
 menu "Lateral Movement" {
@@ -67,14 +72,16 @@ menu "Privilege Escalation" {
 include('/opt/cobalt_strike_extension_kit/scripts/csek_privesc.cna')
 }
 
+menu "Credential Access"{
+include('/opt/cobalt_strike_extension_kit/scripts/csek_credential-access.cna')
+}
+
 menu "Dev" {
  
 include('/opt/cobalt_strike_extension_kit/scripts/csek_dev.cna')
 }
 
-menu "Credential Access"{
-include('/opt/cobalt_strike_extension_kit/scripts/csek_credential-access_dev.cna')
-}
+
 
 }
 }
