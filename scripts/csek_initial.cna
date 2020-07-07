@@ -67,6 +67,14 @@ item "SitRep (LOUD)  - T1082"{
 	}
 
 }
+
+#Scout
+item "Scout - T1082"{
+	local ('$bid');
+		foreach $bid ($1){
+			scout($bid);
+		}
+	}
 }
 
 
@@ -347,6 +355,13 @@ bexecute_assembly($1, script_resource('/exe/SitRep.exe'));
 #SitRep UnSafe
 sub sitreploud{ 
 bexecute_assembly($1, script_resource('/exe/SitRep.exe'), "/AllowUnsafe");
+}
+
+#Scout
+sub scout{ 
+prompt_text("Please Specify A Machine (Must Be", "", lambda({
+bexecute_assembly($bids, script_resource('/exe/scout.exe'), "$1");
+}, $bids => $1));
 }
 
 
