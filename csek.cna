@@ -76,11 +76,6 @@ menu "Credential Access"{
 include('/opt/cobalt_strike_extension_kit/scripts/csek_credential-access.cna')
 }
 
-menu "Dev" {
- 
-include('/opt/cobalt_strike_extension_kit/scripts/csek_dev.cna')
-}
-
 
 
 }
