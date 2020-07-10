@@ -98,6 +98,31 @@ item "Disable ETW in current process - T1054"{
 #################################################
 
 
+#################################################
+
+#   Begin blocking 3rd Party DLL's
+
+#################################################
+
+
+# Block ETW
+item "Block 3rd Party DLL's"{
+
+    local('$bid');
+        foreach $bid ($1){
+            blockdlls($bid);
+      }
+
+    }
+
+
+#################################################
+
+#   Begin blocking 3rd Party DLL's
+
+#################################################
+
+
 
 ####################################################
 
@@ -184,4 +209,9 @@ sub psx {
     blog($bid, "Enumerating processes.");
     bdllspawn($bid, script_resource("/exe/Outflank-PsX.dll"), "", "PsX", 5000, false);
     return;
+}
+
+
+sub blockdlls {
+bblockdlls($1);
 }
