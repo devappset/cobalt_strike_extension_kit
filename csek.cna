@@ -51,6 +51,11 @@ menu "Defense Evasion"{
 include('/opt/cobalt_strike_extension_kit/scripts/csek_defev.cna')
 }
 
+menu "Code Execution"{
+
+include('/opt/cobalt_strike_extension_kit/scripts/csek_codexec.cna')
+}
+
 menu "Persistence" {
  
 include('/opt/cobalt_strike_extension_kit/scripts/csek_persistence.cna') 
