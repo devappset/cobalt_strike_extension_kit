@@ -9,8 +9,7 @@
   #####################################		         					#####################################
            ############################		  Load Non-Menu Scripts		############################
                              
-                                
-@aggressor =  ls('/opt/cobalt_strike_extension_kit/scripts/non-menu');
+@aggressor =  ls script_resource('scripts/non-menu');
 println("[+] Importing:");
 foreach $file (@aggressor){ 
 	include($file);
@@ -43,42 +42,37 @@ popup beacon_top {
 
 menu "Initial Access" {
 
-include('/opt/cobalt_strike_extension_kit/scripts/csek_initial.cna')
+include script_resource('scripts/csek_initial.cna')
 }
 
 menu "Defense Evasion"{
 
-include('/opt/cobalt_strike_extension_kit/scripts/csek_defev.cna')
+include script_resource('scripts/csek_defev.cna')
 }
 
 menu "Persistence" {
  
-include('/opt/cobalt_strike_extension_kit/scripts/csek_persistence.cna') 
+include script_resource('scripts/csek_persistence.cna') 
 } 
 	
 menu "Enumeration" {
 
-include('/opt/cobalt_strike_extension_kit/scripts/csek_enum.cna')
+include script_resource('scripts/csek_enum.cna')
 }
 
 menu "Lateral Movement" {
 
-include('/opt/cobalt_strike_extension_kit/scripts/csek_latmove.cna')
+include script_resource('scripts/csek_latmove.cna')
 }
 
-
 menu "Privilege Escalation" {
- 
-#include('/opt/cobalt_strike_extension_kit/scripts/csek_privesc.cna')
-#}
 
-include('/opt/cobalt_strike_extension_kit/scripts/csek_privesc.cna')
+include script_resource('scripts/csek_privesc.cna')
 }
 
 menu "Credential Access"{
-include('/opt/cobalt_strike_extension_kit/scripts/csek_credential-access.cna')
+include script_resource('scripts/csek_credential-access.cna')
 }
-
 
 
 }
