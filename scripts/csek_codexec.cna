@@ -26,7 +26,7 @@ sub winrmcsharp{
 		$cmdargs = "$3['hostname'] $3['fqdn'] $3['username'] $3['pass'] $3['command']";
         if ($3["execmethod"] eq "Execute-Assembly"){
             btask($bid, 'Executing WinRM');
-            bexecute_assembly($bid, script_resource('../exe/winrm.exe'), $cmdargs);
+            bexecute_assembly($bid, script_resource('/exe/winrm.exe'), $cmdargs);
         }
     }));
     dialog_description($dialog, "Execute Code Remotely with WinRM, Using CSharp");
