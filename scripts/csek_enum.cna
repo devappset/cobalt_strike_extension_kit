@@ -2,7 +2,104 @@
 #######################################		         		#######################################
   #####################################		         		#####################################
            ############################		  Menus 		############################
+    ###################################		         		###################################
+#######################################		         		#######################################
+  #####################################		         		#####################################
+           ############################		  Menus 		############################
+#################################################
 
+#   Seatbelt Enumeration
+
+#################################################
+menu "Seatbelt Enumeration" {
+
+item "Remote Enumeration"{
+
+    local('$bid');
+        foreach $bid ($1){
+            remoteenumseatbelt($bid);
+            }
+
+        }
+
+item "Host Full Enumeration"{
+
+    local('$bid');
+        foreach $bid ($1){
+            seatbeltsinglehostall($bid);
+            }
+
+        }
+
+item "Host Selective Enumeration"{
+
+    local('$bid');
+        foreach $bid ($1){
+            selectivehostseatbeltenum($bid);
+            }
+
+        }
+
+    } #End of Menu
+##############################
+##
+##
+##Enumerate Remote Host with Seatbelt Function
+##
+##############################
+sub remoteenumseatbelt{
+    $bid = $1;
+    $dialog = dialog("Enumerate Remote Host with Seatbelt", %(computername => "", username => "", password => "", group => "", full => "", execmethod => "Execute-Assembly"), lambda({
+        $cmdargs = "";
+        $cmdargs = "-computername=$3['computername'] -username=$3['username'] -password=$3['password'] -group=$3['group'] $3['full']";
+        if ($3["execmethod"] eq "Execute-Assembly"){
+            btask($bid, 'Enumerating Remote Host');
+            bexecute_assembly($bid, script_resource('/exe/Seatbelt.exe'), $cmdargs);
+        }
+    }));
+    dialog_description($dialog, "Enumerate Remote Hosts with Seatbelt");
+    drow_text($dialog, "computername",  "Please enter remote host to enumerate");
+    drow_text($dialog, "username",  "Please Enter username as Domain\\User");
+    drow_text($dialog, "password",  "Please Enter Cleartext Password");
+    drow_combobox($dialog, "group", "Group Type: ", @("all", "user", "system", "slack", "chrome", "remote", "misc"));
+    drow_combobox($dialog, "full", "Prevent Output Filtering: ", @("", "-full"));
+    dbutton_action($dialog, "Execute");
+    dialog_show($dialog);
+}
+##############################
+##
+##
+##Single Host Full Enumeration Function
+##
+##############################
+sub seatbeltsinglehostall{
+bexecute_assembly($1, script_resource('/exe/Seatbelt.exe'), "-group=all");
+}
+
+##############################
+##
+##
+##Selective Host Enumeration
+##
+##############################
+sub selectivehostseatbeltenum{
+    $bid = $1;
+    $dialog = dialog("Enumerate Current Host with Seatbelt", %(group => "", full => "", execmethod => "Execute-Assembly"), lambda({
+        $cmdargs = "";
+        $cmdargs = "-group=$3['group'] $3['full'] $3['output']$3['outputdirectory']";
+        if ($3["execmethod"] eq "Execute-Assembly"){
+            btask($bid, 'Enumerating Host');
+            bexecute_assembly($bid, script_resource('/exe/Seatbelt.exe'), $cmdargs);
+        }
+    }));
+    dialog_description($dialog, "Enumerate Current Host with Seatbelt");
+    drow_combobox($dialog, "group", "Group Type: ", @("all", "user", "system", "slack", "chrome", "remote", "misc"));
+    drow_combobox($dialog, "full", "Prevent Output Filtering (Optional): ", @("", "-full"));
+    drow_combobox($dialog, "output", "Enable Output (Optional): ", @("", "-outputfile="));
+    drow_text($dialog, "outputdirectory",  "Enter Output Directory and file .json/.txt (Optional)");
+    dbutton_action($dialog, "Execute");
+    dialog_show($dialog);
+}
 #################################################
 
 #   Local Admin Access
