@@ -165,6 +165,86 @@ menu "Domain Computer Object Enumeration"
 				}
 			}			
 }
+
+
+#####################################
+##
+## Unconstrained and Constrained Delegation Enumeration Menu/Functions
+##
+#####################################
+
+
+menu "Delegation Enumeration Tools"{
+
+item "Search Unconstrained Delegation"{
+
+    local('$bid');
+        foreach $bid ($1){
+            sharpviewunconstrained($bid);
+      }
+
+    }
+
+item "Search Constrained Delegation"{
+
+    local('$bid');
+        foreach $bid ($1){
+            sharpviewconstrained($bid);
+      }
+
+    }
+
+} #End Menu
+ 
+
+#####################################
+##
+## Unconstrained Function
+##
+#####################################
+    
+    
+sub sharpviewunconstrained{
+    $bid = $1;
+    $dialog = dialog("Find Computers with Unconstrained Delegation", %(domain => "", execmethod => "Execute-Assembly"), lambda({
+        $cmdargs = "";
+		$cmdargs = "Get-DomainComputer -Unconstrained -Domain $3['domain']";
+        if ($3["execmethod"] eq "Execute-Assembly"){
+            btask($bid, 'Finding Computers with Unconstrained Delegation');
+            bexecute_assembly($bid, script_resource('/exe/SharpView.exe'), $cmdargs);
+        }
+    }));
+    dialog_description($dialog, "Locate Computers with Unconstrained Delegation by Domain name");
+    drow_text($dialog, "domain",  "Domain Name");  
+    dbutton_action($dialog, "Execute");
+	dialog_show($dialog);
+}
+
+
+#####################################
+##
+## Constrained Function
+##
+#####################################
+
+
+sub sharpviewconstrained{
+    $bid = $1;
+    $dialog = dialog("Find Computers with Constrained Delegation", %(domain => "", execmethod => "Execute-Assembly"), lambda({
+        $cmdargs = "";
+		$cmdargs = "Get-DomainComputer -TrustedToAuth -Domain $3['domain']";
+        if ($3["execmethod"] eq "Execute-Assembly"){
+            btask($bid, 'Finding Computers with Constrained Delegation');
+            bexecute_assembly($bid, script_resource('/exe/SharpView.exe'), $cmdargs);
+        }
+    }));
+    dialog_description($dialog, "Locate Computers with Constrained Delegation by Domain name");
+    drow_text($dialog, "domain",  "Domain Name");  
+    dbutton_action($dialog, "Execute");
+	dialog_show($dialog);
+}
+
+
 #################################################
 
 #   Domain Group Enumeration
