@@ -9,7 +9,7 @@ beacon_path = '/opt/cobaltstrike/logs/operator_logs/beacon_output/'
 args = sys.argv[1:]
 num = 0
 date_timestamp = str(datetime.datetime.now().strftime("%Y%b%d"))
-log_file_path = date_timestamp+"_"+str(" ".join(args))+"_log.html"
+log_file_path = "/opt/cobaltstrike/logs/"+date_timestamp+"_"+str(" ".join(args))+"_log.html"
 
 log_file = open(log_file_path,"a+")
 log_file.write("""
