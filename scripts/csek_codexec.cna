@@ -73,7 +73,7 @@ sub smbexeccsharp{
 		$cmdargs = "hash:$3['hash'] username:$3['username'] domain:$3['domain'] target:$3['target'] command:$3['command'] servicename:$3['servicename']"; 
         if ($3["execmethod"] eq "Execute-Assembly"){
             btask($bid, 'Executing Code w/SMBExec');
-            bexecute_assembly($bid, script_resource('Sharp-SMBExec.exe'), $cmdargs);
+            bexecute_assembly($bid, script_resource('/exe/Sharp-SMBExec.exe'), $cmdargs);
         }
     }));
     dialog_description($dialog, "Execute Code Remotely using SMB, Using CSharp - Please use cmd /c or cmd /r if your command runs an executable, also please enclose command in double quotes");
