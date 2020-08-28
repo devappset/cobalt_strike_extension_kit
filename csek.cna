@@ -82,6 +82,5 @@ include('/opt/cobalt_strike_extension_kit/scripts/csek_credential-access.cna')
 }
 
 
-
 }
 }
