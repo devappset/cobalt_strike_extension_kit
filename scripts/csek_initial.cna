@@ -41,7 +41,7 @@ item "Seatbelt (System Checks)  - T1082"{
 #Seatbelt Specified Checks
 	item "Seatbelt (Specified Check)  - T1082"{
         prompt_text("Please Specify a CheckName", "", lambda({
-                    bexecute_assembly($bids, script_resource('/exe/Seatbelt.exe'), "$1 full");                
+                    bexecute_assembly($bids, script_resource('/exe/Seatbelt.exe'), "-group=$1 -full");                
                 }, $bids => $1));
 			}		
 }
@@ -331,17 +331,17 @@ item "Suspend Process  - T1057"{
 
 #SeatBelt All Enum Checks
 sub seatbeltall{
-bexecute_assembly($1, script_resource('/exe/Seatbelt.exe'), "all full");
+bexecute_assembly($1, script_resource('/exe/Seatbelt.exe'), "-group=all -full");
 }
 
 #SeatBelt User Check
 sub seatbeltuser{
-bexecute_assembly($1, script_resource('/exe/Seatbelt.exe'), "user full");
+bexecute_assembly($1, script_resource('/exe/Seatbelt.exe'), "-group=user -full");
 }
 
 #SeatBelt System Check
 sub seatbeltsystem{
-bexecute_assembly($1, script_resource('/exe/Seatbelt.exe'), "system full");
+bexecute_assembly($1, script_resource('/exe/Seatbelt.exe'), "-group=system -full");
 }
 
 
