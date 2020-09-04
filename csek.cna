@@ -81,8 +81,6 @@ menu "Credential Access"{
 include('/opt/cobalt_strike_extension_kit/scripts/csek_credential-access.cna')
 }
 
-menu "BOF"{
-include('/opt/cobalt_strike_extension_kit/script/csek_bof.cna')
-}
+
 }
 }

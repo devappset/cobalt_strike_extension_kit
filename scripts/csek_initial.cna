@@ -101,6 +101,95 @@ item "A/V Query Not OPSec  - T1063"{
 
 #################################################
 
+#   Situational Awareness (BOF)
+
+#################################################
+menu "Situational Awareness (BOF)"{
+
+#ipconfig
+item "ipconfig"{
+	local('$bid');
+		foreach $bid ($1){
+			ipconfig($bid);
+			}
+	}
+	
+#listdns
+item "listdns"{
+	local('$bid');
+		foreach $bid ($1){
+			listdns($bid);
+			}
+		}
+		
+#netstat
+item "netstat"{
+	local('$bid');
+		foreach $bid ($1){
+			netstat($bid);
+			}
+		}
+		
+#netuser
+item "netuser"{
+	local('$bid');
+		foreach $bid ($1){
+			netuser($bid);
+			}
+		}
+		
+#netview
+item "netview"{
+	local('$bid');
+		foreach $bid ($1){
+			netview($bid);
+			}
+		}	
+		
+#nslookup
+item "nslookup"{
+	local('$bid');
+		foreach $bid ($1){
+			nslookup($bid);
+			}
+		}
+#routeprint
+item "routeprint"{
+	local('$bid');
+		foreach $bid ($1){
+			routeprint($bid);
+			}
+		}
+
+#whoami
+item "whoami"{
+	local('$bid');
+		foreach $bid ($1){
+			whoami($bid);
+			}
+		}
+
+#windowlist
+item "windowlist"{
+	local('$bid');
+		foreach $bid ($1){
+			windowlist($bid);
+			}
+		}
+
+#driversigs
+item "driversigs"{
+	local('$bid');
+		foreach $bid ($1){
+			driversigs($bid);
+			}
+		}			
+
+
+
+}
+#################################################
+
 #   Find Files
 
 #################################################
@@ -381,6 +470,74 @@ bexecute_assembly($bids, script_resource('/exe/scout.exe'), "$1");
 sub avquery{ 
 fireAlias($1, "AV_Query");
 }
+
+#################################################
+
+#   Situational Awareness (BOF)
+
+#################################################
+#ipconfig
+sub ipconfig{
+fireAlias($1, "ipconfig");
+}
+
+	
+#listdns
+sub listdns{
+fireAlias($1, "listdns");
+}
+			
+		
+#netstat
+sub netstat{
+fireAlias($1, "netstat");
+}
+
+		
+#netuser - Not Working
+sub netuser{
+prompt_text("Please Specify A User:", "", lambda({
+bfireAlias($bids, "netuser", "$1");
+}, $bids => $1));
+}
+			
+					
+#netview
+sub netview{
+fireAlias($1, "netview");
+}
+			
+		
+#nslookup - Not Working
+sub nslookup{
+prompt_text("Please Specify A HostName:", "", lambda({
+bfireAlias($bids, "nslookup", "$1");
+}, $bids => $1));
+}
+
+
+#routeprint
+sub routeprint{
+fireAlias($1, "routeprint");
+}
+
+
+#whoami
+sub whoami{
+fireAlias($1, "whoami");
+}		
+
+
+#windowlist
+sub windowlist{
+fireAlias($1, "windowlist");
+}
+			
+
+#driversigs
+sub driversigs{
+fireAlias($1, "driversigs");
+}			
 
 #################################################
 
